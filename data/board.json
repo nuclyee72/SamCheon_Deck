@@ -1,0 +1,497 @@
+{
+  "kind": "samguk-deck-board",
+  "version": 1,
+  "exportedAt": "2026-10-02T17:29:36.427Z",
+  "decks": [
+    {
+      "id": "7e92e323-cbdd-49bb-a890-e1ae6253f6c3",
+      "kind": "list",
+      "x": 3128.2415668263825,
+      "y": -304.47448140600864,
+      "locked": false,
+      "season": "패업뽑",
+      "listGenerals": [
+        {
+          "name": "감자",
+          "portraitId": null
+        },
+        {
+          "name": "",
+          "portraitId": null
+        },
+        {
+          "name": "",
+          "portraitId": null
+        },
+        {
+          "name": "",
+          "portraitId": null
+        },
+        {
+          "name": "",
+          "portraitId": null
+        },
+        {
+          "name": "",
+          "portraitId": null
+        },
+        {
+          "name": "",
+          "portraitId": null
+        },
+        {
+          "name": "",
+          "portraitId": null
+        },
+        {
+          "name": "",
+          "portraitId": null
+        }
+      ],
+      "listTactics": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "createdAt": 1790960859852,
+      "updatedAt": 1790962172185
+    },
+    {
+      "id": "84becd26-3c4b-4995-a4b3-4c046669d280",
+      "kind": "deck",
+      "x": 1424.2415668263825,
+      "y": -304.47448140600864,
+      "locked": false,
+      "name": "덱 2",
+      "formation": "f-fish",
+      "notes": "",
+      "generals": [
+        {
+          "name": "",
+          "portraitId": null,
+          "needsTally": false,
+          "troopType": "t-archer",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "",
+          "portraitId": null,
+          "needsTally": false,
+          "troopType": "t-archer",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "",
+          "portraitId": null,
+          "needsTally": false,
+          "troopType": "t-cavalry",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        }
+      ],
+      "createdAt": 1790957411109,
+      "updatedAt": 1790959890543
+    },
+    {
+      "id": "b4c16c6f-74b1-4111-86cb-9187513c4128",
+      "kind": "deck",
+      "x": 572.2415668263825,
+      "y": -312.47448140600864,
+      "locked": false,
+      "name": "덱 1",
+      "formation": null,
+      "notes": "",
+      "generals": [
+        {
+          "name": "감자",
+          "portraitId": null,
+          "needsTally": false,
+          "troopType": null,
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "",
+              "alternatives": [
+                "ㅁㄴㅇ",
+                "ㅁㄴㅇㅇㄹ"
+              ],
+              "required": false
+            },
+            {
+              "text": "ㅁㄴㅇㄹ",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "",
+          "portraitId": null,
+          "needsTally": false,
+          "troopType": null,
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "",
+          "portraitId": null,
+          "needsTally": false,
+          "troopType": null,
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        }
+      ],
+      "createdAt": 1790957317177,
+      "updatedAt": 1790960898510
+    },
+    {
+      "id": "cd5d32be-2917-46fc-9ee2-ba4eba57d0a1",
+      "kind": "deck",
+      "x": 2276.2415668263825,
+      "y": -304.47448140600864,
+      "locked": false,
+      "name": "",
+      "formation": null,
+      "notes": "",
+      "generals": [
+        {
+          "name": "",
+          "portraitId": null,
+          "needsTally": false,
+          "troopType": null,
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "",
+          "portraitId": null,
+          "needsTally": false,
+          "troopType": null,
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "",
+          "portraitId": null,
+          "needsTally": false,
+          "troopType": null,
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        }
+      ],
+      "createdAt": 1790959204997,
+      "updatedAt": 1790959204997
+    }
+  ],
+  "relations": [
+    {
+      "id": "adf3206c-8a64-4689-9125-2edc60475ca2",
+      "fromId": "b4c16c6f-74b1-4111-86cb-9187513c4128",
+      "toId": "84becd26-3c4b-4995-a4b3-4c046669d280",
+      "type": "arrow",
+      "template": "counter",
+      "label": "카운터",
+      "color": "#d64545",
+      "lineStyle": "solid",
+      "bidirectional": false
+    },
+    {
+      "id": "c1a1aaa3-fb20-4b41-8911-64d5807409e2",
+      "fromId": "cd5d32be-2917-46fc-9ee2-ba4eba57d0a1",
+      "toId": "84becd26-3c4b-4995-a4b3-4c046669d280",
+      "type": "arrow",
+      "template": "counter",
+      "label": "카운터",
+      "color": "#d64545",
+      "lineStyle": "solid",
+      "bidirectional": false
+    }
+  ],
+  "view": {
+    "panX": -57.92688877974683,
+    "panY": 370.23669117181305,
+    "scale": 0.25675675675675674
+  },
+  "images": {}
+}
