@@ -51,6 +51,17 @@ export function defaultColorFor(type) {
 const LABEL_HIT_W = 56;
 const LABEL_HIT_H = 18;
 
+/** 화살촉 크기(선 굵기의 배수 — marker 기본 단위가 strokeWidth)와, 화살촉 중 선 끝에 걸리는 지점(0~10,
+ * 10 = 뾰족한 끝). 선 끝을 화살촉 "끝"이 아니라 안쪽(밑변 근처)에 걸어야 네모난 선 끝이 뾰족한 끝 옆으로
+ * 삐져나와 보이지 않는다 — 대신 그리는 쪽에서 선을 arrowTrimLength(선 굵기)만큼 줄여 끝을 맞춘다. */
+const ARROW_SIZE = 6;
+const ARROW_REF_X = 2;
+
+/** 화살촉 끝이 원래 끝점에 오게 하려면 선(보이는 선)을 끝에서 이만큼(월드 단위) 줄여야 한다. */
+export function arrowTrimLength(strokeWidth) {
+  return ARROW_SIZE * strokeWidth * (10 - ARROW_REF_X) / 10;
+}
+
 /** "화살표" 유형 전용 화살촉 — 관계선마다 id를 따로 줘서(rel.id 기반) 여러 화살표가 한 화면에
  * 있어도 marker-end="url(#...)" 참조가 서로 안 겹치게 한다. 색은 이 선 자신의 stroke와 항상
  * 같아야 하므로 applyLineStyle이 매번 이 안의 path fill도 같이 갱신한다. */
@@ -59,10 +70,10 @@ function createArrowMarker(relId) {
   const marker = document.createElementNS(SVG_NS, "marker");
   marker.setAttribute("id", arrowMarkerId(relId));
   marker.setAttribute("viewBox", "0 0 10 10");
-  marker.setAttribute("refX", "10");
+  marker.setAttribute("refX", String(ARROW_REF_X));
   marker.setAttribute("refY", "5");
-  marker.setAttribute("markerWidth", "6");
-  marker.setAttribute("markerHeight", "6");
+  marker.setAttribute("markerWidth", String(ARROW_SIZE));
+  marker.setAttribute("markerHeight", String(ARROW_SIZE));
   // 화살표가 그려지는 방향(선분의 진행 방향)에 맞춰 화살촉이 자동으로 돌아가게 한다.
   marker.setAttribute("orient", "auto-start-reverse");
   const path = document.createElementNS(SVG_NS, "path");

@@ -55,7 +55,9 @@ export function createListBoard(deck, { onInput, onAction, onHighlight }) {
     const item = e.target.closest(".list-general, .list-tactic");
     if (!item) return;
     const type = item.classList.contains("list-general") ? "general" : "tactic";
-    onHighlight(type, item.querySelector("input").value, { typing: !!e.target.closest("input") });
+    // 이름을 고치려고 입력칸을 누른 경우(수정 모드)만 "입력 중" — 보기 모드의 읽기 전용 칸은 그냥 칸 누르기.
+    const input = e.target.closest("input");
+    onHighlight(type, item.querySelector("input").value, { typing: !!input && !input.readOnly });
   });
 
   // 장수 칸 초상화에 이미지 파일을 끌어다 놓기

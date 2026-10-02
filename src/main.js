@@ -73,9 +73,6 @@ const toolbar = new Toolbar(toolbarEl, {
   insertTemplate,
   insertBuiltinTemplate,
   deleteTemplate,
-  zoomIn: () => zoomAtCenter(1.25),
-  zoomOut: () => zoomAtCenter(1 / 1.25),
-  zoomReset: () => camera.resetView(),
   fit: () => camera.fitToContent(renderer.getBounds()),
   undo: () => undoMgr.performUndo(),
   redo: () => undoMgr.performRedo(),
@@ -306,11 +303,6 @@ const syncToolbarHeight = () => {
 new ResizeObserver(syncToolbarHeight).observe(toolbarEl);
 syncToolbarHeight();
 
-function zoomAtCenter(factor) {
-  const rect = viewportEl.getBoundingClientRect();
-  camera.zoomBy(factor, rect.left + rect.width / 2, rect.top + rect.height / 2);
-}
-
 function viewportCenterWorld() {
   const rect = viewportEl.getBoundingClientRect();
   return camera.screenToWorld(rect.left + rect.width / 2, rect.top + rect.height / 2);
@@ -380,13 +372,15 @@ function ensureDeckVisible(deck) {
 const backgroundDrag = new DragController(viewportEl, {
   // 보기 모드에서는 덱 위에서 끌어도 팬(덱은 어차피 못 옮김) — 대체 전법 펼치기·비고 스크롤만 예외.
   filter: (e) => (!e.target.closest(".deck-board") && !e.target.closest(".rel-line")) ||
-    (uiMode === "view" && !e.target.closest(".tactic-toggle, .tactic-alts, .deck-notes, .list-general, .list-tactic")),
+    (uiMode === "view" && !e.target.closest(".tactic-toggle, .tactic-alts, .deck-notes")),
   onDragStart: () => camera.setTransforming(true),
   onDragMove: (dx, dy) => camera.pan(dx, dy),
   onDragEnd: () => camera.setTransforming(false),
-  onClick: () => {
+  onClick: (e) => {
     renderer.setSelected(null);
-    renderer.setHighlight(null);
+    // 보기 모드에서 리스트 장수/전법 칸을 탭한 경우는 그 칸의 click이 강조를 켜고 끈다 — 여기서 먼저
+    // 꺼버리면 같은 칸을 다시 눌러 끄기가 안 된다. (그 칸 위에서 끌면 화면 이동은 그대로 된다)
+    if (!e.target.closest?.(".list-general, .list-tactic")) renderer.setHighlight(null);
     closeDeckMenu();
     closeRelEditor();
   },

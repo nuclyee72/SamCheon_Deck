@@ -1,4 +1,4 @@
-import { createLineElement, applyLineStyle, updateLinePosition } from "../lib/RelationshipLine.js";
+import { createLineElement, applyLineStyle, updateLinePosition, arrowTrimLength } from "../lib/RelationshipLine.js";
 
 // 확대/축소해도 선 굵기·클릭 범위가 화면에서 일정하게 보이게(화면 px 기준, 가계도 TreeRenderer와 같은
 // 방식). 덱 관계선은 덱 사이 넓은 공간을 가로지르니 가계도(1.5px)보다 굵게 — 화살촉도 선 굵기에 비례해 커진다.
@@ -66,11 +66,13 @@ export class RelationRenderer {
     const g = this.lineEls.get(id);
     g?.classList.add("selected");
     for (const el of this.lineEls.values()) this._applyScale(el);
+    this.refresh(); // 굵기가 바뀌면 화살촉 크기도 바뀌어 선 끝을 다시 줄여야 한다
   }
 
   /** 화면 배율이 바뀔 때(main.js의 camera.onChange) 선 굵기를 다시 맞춘다. */
   updateScale() {
     for (const g of this.lineEls.values()) this._applyScale(g);
+    this.refresh(); // 화살촉이 화면 기준 크기라 배율이 바뀌면 선 끝을 줄이는 길이도 바뀐다
   }
 
   _applyScale(g) {
@@ -99,9 +101,26 @@ export class RelationRenderer {
         // 묶음 안에서 기준 방향을 하나로 정해야(정렬된 id 순) A→B, B→A 선이 같은 쪽으로 안 겹친다.
         const flip = rel.fromId > rel.toId;
         const offset = (i - (list.length - 1) / 2) * PARALLEL_SPACING * (flip ? -1 : 1);
-        updateLinePosition(g, edgeToEdge(a, b, offset));
+        const pts = edgeToEdge(a, b, offset);
+        updateLinePosition(g, pts);
+        if (rel.type === "arrow") this._trimForArrowheads(g, rel, pts);
       });
     }
+  }
+
+  /** 보이는 선(클릭 범위 선은 그대로)을 화살촉이 달린 끝에서 화살촉 길이만큼 줄인다 — 화살촉은 줄인 끝에
+   * 밑변 쪽이 걸려서 뾰족한 끝이 원래 끝점에 오고, 네모난 선 끝은 화살촉 안에 가려진다. */
+  _trimForArrowheads(g, rel, [p0, p1]) {
+    const visible = g.querySelector(".rel-line-visible");
+    const sw = parseFloat(visible.getAttribute("stroke-width")) || LINE_TARGET_SCREEN_PX / (this.camera.scale || 1);
+    const len = Math.hypot(p1.x - p0.x, p1.y - p0.y);
+    if (!len) return;
+    const d = { x: (p1.x - p0.x) / len, y: (p1.y - p0.y) / len };
+    // 선이 너무 짧으면(덱이 바짝 붙음) 다 줄이지 않고 선 길이의 일부만.
+    const trim = Math.min(arrowTrimLength(sw), len / (rel.bidirectional ? 2.5 : 1.5));
+    const end = { x: p1.x - d.x * trim, y: p1.y - d.y * trim };
+    const start = rel.bidirectional ? { x: p0.x + d.x * trim, y: p0.y + d.y * trim } : p0;
+    visible.setAttribute("points", `${start.x},${start.y} ${end.x},${end.y}`);
   }
 }
 

@@ -10,7 +10,7 @@
  * 그리지 않고 이미 래스터화된 화면을 그냥 GPU로 늘리거나 줄이기만 해서, 축소해서 볼 때 특히
  * 전체적으로 흐릿하게 보인다 — 조작이 멈춘 뒤에는 원래 해상도로 다시 그리게 해서 선명하게 만든다.
  */
-const MIN_SCALE = 0.2;
+const MIN_SCALE = 0.08; // 폰처럼 좁은 화면에서도 덱 여러 개를 "한 화면에 넣기" 할 수 있게
 const MAX_SCALE = 3;
 const LERP = 0.18;
 const SETTLE_EPSILON = 0.0004;
@@ -91,6 +91,9 @@ export class Camera {
   fitToContent(bounds, { paddingX = 140, paddingY = 100, animate = true } = {}) {
     if (!bounds) return this.resetView();
     const rect = this.viewport.getBoundingClientRect();
+    // 좁은 화면(폰)에서는 고정 여백이 화면 대부분을 잡아먹으니 화면 크기에 비례해 줄인다.
+    paddingX = Math.min(paddingX, rect.width * 0.06);
+    paddingY = Math.min(paddingY, rect.height * 0.06);
     const w = Math.max(1, bounds.maxX - bounds.minX);
     const h = Math.max(1, bounds.maxY - bounds.minY);
     const scale = clamp(

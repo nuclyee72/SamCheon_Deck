@@ -311,8 +311,12 @@ export class DeckRenderer {
   _attachDrag(id, el) {
     const header = el.querySelector(".deck-header");
     const drag = new DragController(header, {
-      // 입력칸·셀렉트·버튼 위에서는 드래그를 시작하지 않는다(글자 선택·클릭이 돼야 함).
-      filter: (e) => this.editable && !e.target.closest("input, select, textarea, button, label"),
+      // 입력칸·셀렉트·버튼 위에서는 드래그를 시작하지 않는다(글자 선택·클릭이 돼야 함). 단 터치에서는
+      // 덱 이름(시즌) 칸 위에서도 끌 수 있게 한다 — 폰에서는 ⠿가 너무 작아 손가락이 옆의 이름 칸에 잡힌다.
+      // (살짝 누르기만 하면 드래그가 아니라 그대로 이름 칸에 입력)
+      filter: (e) => this.editable && !e.target.closest(
+        e.pointerType === "touch" ? "select, textarea, button, label, input:not(.deck-name)" : "input, select, textarea, button, label",
+      ),
       onDragStart: () => this._beginDrag(id),
       onDragMove: (dx, dy, e) => this._moveDrag(dx / this.camera.scale, dy / this.camera.scale, e),
       onDragEnd: (e) => this._endDrag(e),

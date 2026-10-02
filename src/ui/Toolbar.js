@@ -31,11 +31,8 @@ export class Toolbar {
         <button type="button" class="toggle" data-action="view-mode" data-mode="normal" title="장수·병종·전법만">보통</button>
         <button type="button" class="toggle" data-action="view-mode" data-mode="compact" title="장수만">적게</button>
       </div>
-      <div class="toolbar-group toolbar-zoom-group">
-        <button type="button" data-action="zoom-out" aria-label="축소">－</button>
-        <button type="button" data-action="zoom-reset">100%</button>
-        <button type="button" data-action="zoom-in" aria-label="확대">＋</button>
-        <button type="button" data-action="fit" title="전체보기" aria-label="전체보기">⛶</button>
+      <div class="toolbar-group toolbar-fit-group">
+        <button type="button" data-action="fit" title="한 화면에 넣기" aria-label="한 화면에 넣기">⛶</button>
       </div>
       <div class="toolbar-group edit-only">
         <button type="button" data-action="undo" title="실행취소" aria-label="실행취소">↶</button>
@@ -117,6 +114,8 @@ export class Toolbar {
     });
     this.setTemplates([]);
 
+    this.el.addEventListener("scroll", () => this.closeMenus());
+
     document.addEventListener("click", (e) => {
       for (const dd of this.el.querySelectorAll(".toolbar-dropdown.open")) {
         if (!dd.contains(e.target)) dd.classList.remove("open");
@@ -129,6 +128,23 @@ export class Toolbar {
     const open = !dropdown.classList.contains("open");
     this.closeMenus();
     dropdown.classList.toggle("open", open);
+    if (open) this._positionMobileMenu(dropdown);
+  }
+
+  /** 좁은 화면에서는 툴바가 가로 스크롤이라 메뉴를 position:fixed로 띄운다(base.css) — 그 화면 좌표를
+   * 열 때마다 버튼 위치로 맞춘다: 툴바 바로 아래, 버튼 왼쪽에 맞추되 화면 밖으로 안 나가게. */
+  _positionMobileMenu(dropdown) {
+    const menu = dropdown.querySelector(".toolbar-dropdown-menu");
+    if (!window.matchMedia("(max-width: 640px)").matches) {
+      menu.style.left = menu.style.top = menu.style.right = "";
+      return;
+    }
+    const btn = dropdown.querySelector("button");
+    const b = btn.getBoundingClientRect();
+    const margin = 6;
+    menu.style.top = `${this.el.getBoundingClientRect().bottom + 4}px`;
+    menu.style.right = "auto"; // 💾 메뉴의 right:0(데스크톱용)을 끄고 left로만 맞춘다
+    menu.style.left = `${Math.max(margin, Math.min(b.left, window.innerWidth - menu.offsetWidth - margin))}px`;
   }
 
   closeMenus() {
