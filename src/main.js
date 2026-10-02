@@ -4,7 +4,7 @@ import { UndoManager } from "./lib/UndoManager.js";
 import { ImageCropEditor } from "./lib/ImageCropEditor.js";
 import { uuid } from "./lib/uuid.js";
 import { findFreeRectSpot, rectCollides } from "./lib/fieldSnap.js";
-import { DeckModel, cloneDeckContent, emptyListGeneral, deckPortraitIds } from "./core/DeckModel.js";
+import { DeckModel, cloneDeckContent, emptyListGeneral, deckPortraitIds, DECK_TINTS } from "./core/DeckModel.js";
 import { DeckStore, MemoryDeckStore, imagesToDataURLs, dataURLsToImages, EXPORT_VERSION } from "./core/DeckStore.js";
 import { DeckRenderer, DECK_GAP } from "./view/DeckRenderer.js";
 import { RelationRenderer } from "./view/RelationRenderer.js";
@@ -470,6 +470,28 @@ async function setPortraitFromFile(deckId, path, file) {
 // ---------- 덱 ⋯ 메뉴 ----------
 let menuDeckId = null;
 
+// 배경색 고르기(기본 + DECK_TINTS) — 누르면 메뉴는 열어둔 채 바로 칠해서 비교해 볼 수 있다.
+const tintsEl = deckMenuEl.querySelector(".deck-menu-tints");
+for (const tint of [null, ...DECK_TINTS]) {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "deck-menu-tint";
+  btn.dataset.tint = tint || "";
+  btn.title = tint ? "배경색" : "기본 배경";
+  btn.setAttribute("aria-label", tint ? `배경색 ${tint}` : "기본 배경");
+  tintsEl.append(btn);
+}
+function syncTintButtons(deck) {
+  for (const b of tintsEl.querySelectorAll(".deck-menu-tint")) b.classList.toggle("active", (b.dataset.tint || null) === (deck.tint || null));
+}
+tintsEl.addEventListener("click", (e) => {
+  const btn = e.target.closest(".deck-menu-tint");
+  const deck = model.decks.get(menuDeckId);
+  if (!btn || !deck) return;
+  model.updateDeck(deck.id, { tint: btn.dataset.tint || null });
+  syncTintButtons(deck);
+});
+
 function openDeckMenu(deckId, button) {
   const deck = model.decks.get(deckId);
   if (!deck) return;
@@ -477,6 +499,7 @@ function openDeckMenu(deckId, button) {
   menuDeckId = deckId;
   deckMenuEl.querySelector('[data-menu="toggle-lock"]').textContent = deck.locked ? "위치 잠금 해제" : "위치 잠금";
   deckMenuEl.querySelector('[data-menu="export-deck"]').textContent = `이 ${deck.kind === "list" ? "리스트" : "덱"} JSON으로 내보내기`;
+  syncTintButtons(deck);
   deckMenuEl.hidden = false;
   const r = button.getBoundingClientRect();
   const m = deckMenuEl.getBoundingClientRect();

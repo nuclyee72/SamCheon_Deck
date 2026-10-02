@@ -112,6 +112,7 @@ export function syncDeckBoard(el, deck, portraitUrlFor) {
   syncSelect(el.querySelector(".deck-formation select"), deck.formation);
   syncTroopSummary(el.querySelector(".deck-troops"), deck);
   el.classList.toggle("locked", !!deck.locked);
+  syncTint(el, deck);
   el.querySelectorAll(".general-card").forEach((cardEl, gi) => {
     const g = deck.generals[gi];
     syncGeneralCard(cardEl, g, g.portraitId ? portraitUrlFor(g.portraitId) : null);
@@ -134,6 +135,12 @@ function syncTroopSummary(span, deck) {
   span.hidden = !any;
   span.textContent = any ? picked.map((t) => t?.short || "?").join("•") : "";
   span.title = any ? picked.map((t) => t?.name || "미선택").join(" · ") : "";
+}
+
+/** 배경색(deck.tint) — style.css의 .deck-board[data-tint]가 색을 칠한다. 덱·리스트 공용. */
+export function syncTint(el, deck) {
+  if (deck.tint) el.dataset.tint = deck.tint;
+  else delete el.dataset.tint;
 }
 
 export function positionDeckBoard(el, deck) {

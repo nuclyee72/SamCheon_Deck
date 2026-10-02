@@ -32,6 +32,11 @@ export function emptyGeneral() {
  * 실행취소·저장을 그대로 같이 쓴다. kind가 없는 예전 데이터는 덱. */
 export const DECK_KINDS = ["deck", "list"];
 
+/** 덱/리스트 배경색 — 색 값 대신 이름을 저장하고 실제 색은 style.css(--tint-*)가 정한다(다크 모드에서
+ * 다른 색). null = 기본 배경. */
+export const DECK_TINTS = ["red", "orange", "yellow", "green", "blue", "purple", "gray"];
+const normalizeTint = (t) => (DECK_TINTS.includes(t) ? t : null);
+
 /** 리스트의 장수 한 칸 — 이름이 같으면 덱·다른 리스트의 장수와 같은 장수로 본다(하이라이트). */
 export const emptyListGeneral = () => ({ name: "", portraitId: null });
 
@@ -53,6 +58,7 @@ function normalizeList(deck) {
     x: deck.x ?? 0,
     y: deck.y ?? 0,
     locked: !!deck.locked,
+    tint: normalizeTint(deck.tint),
     season: deck.season || "",
     listGenerals: (Array.isArray(deck.listGenerals) ? deck.listGenerals : []).map((g) => ({
       name: g?.name || "",
@@ -96,6 +102,7 @@ export function normalizeDeck(deck) {
     x: deck.x ?? 0,
     y: deck.y ?? 0,
     locked: !!deck.locked,
+    tint: normalizeTint(deck.tint),
     name: deck.name || "",
     formation: deck.formation ?? null,
     notes: deck.notes || "",

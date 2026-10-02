@@ -5,11 +5,26 @@
   --tally: #c98a1c; /* 병부 마크(켜짐) */
   --tally-soft: #fbefd6;
   --deck-input-bg: var(--surface);
+  /* 덱/리스트 배경색(⋯ → 배경색) — 글자가 잘 읽히게 옅은 색만 */
+  --tint-red: #fbe4e4;
+  --tint-orange: #fcebd9;
+  --tint-yellow: #faf2cf;
+  --tint-green: #dff1e5;
+  --tint-blue: #e0e9fb;
+  --tint-purple: #ece3fa;
+  --tint-gray: #e8ebef;
 }
 
 :root[data-theme="dark"] {
   --tally: #e0a63e;
   --tally-soft: #3b2f17;
+  --tint-red: #3b2427;
+  --tint-orange: #3a2c1f;
+  --tint-yellow: #35301c;
+  --tint-green: #1f3327;
+  --tint-blue: #1f2b42;
+  --tint-purple: #2d2541;
+  --tint-gray: #2b3038;
 }
 
 /* ---------- 캔버스 ---------- */
@@ -59,6 +74,14 @@
   font-size: 13px;
   cursor: default;
 }
+
+.deck-board[data-tint="red"] { background: var(--tint-red); }
+.deck-board[data-tint="orange"] { background: var(--tint-orange); }
+.deck-board[data-tint="yellow"] { background: var(--tint-yellow); }
+.deck-board[data-tint="green"] { background: var(--tint-green); }
+.deck-board[data-tint="blue"] { background: var(--tint-blue); }
+.deck-board[data-tint="purple"] { background: var(--tint-purple); }
+.deck-board[data-tint="gray"] { background: var(--tint-gray); }
 
 .deck-board.selected { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow), 0 4px 18px var(--panel-shadow); }
 .deck-board.dragging { box-shadow: 0 0 0 2px var(--accent-glow), 0 12px 32px var(--shadow); z-index: 2; }
@@ -702,6 +725,37 @@
 }
 .deck-menu button:hover { background: var(--accent-soft); color: var(--accent); }
 .deck-menu button.danger { color: var(--danger); }
+
+/* ⋯ 메뉴의 배경색 고르기 — 동그란 색 칸(맨 앞은 기본 배경) */
+.deck-menu-tints {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  margin: 2px 0;
+}
+.deck-menu-tints > span { width: 100%; font-size: 12px; color: var(--muted); }
+.deck-menu .deck-menu-tint {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+}
+.deck-menu .deck-menu-tint:hover { background: var(--panel-bg); box-shadow: 0 0 0 2px var(--accent-soft); }
+.deck-menu .deck-menu-tint[data-tint=""] { background: linear-gradient(135deg, var(--panel-bg) 45%, var(--border) 45% 55%, var(--panel-bg) 55%); }
+.deck-menu .deck-menu-tint[data-tint="red"] { background: var(--tint-red); }
+.deck-menu .deck-menu-tint[data-tint="orange"] { background: var(--tint-orange); }
+.deck-menu .deck-menu-tint[data-tint="yellow"] { background: var(--tint-yellow); }
+.deck-menu .deck-menu-tint[data-tint="green"] { background: var(--tint-green); }
+.deck-menu .deck-menu-tint[data-tint="blue"] { background: var(--tint-blue); }
+.deck-menu .deck-menu-tint[data-tint="purple"] { background: var(--tint-purple); }
+.deck-menu .deck-menu-tint[data-tint="gray"] { background: var(--tint-gray); }
+.deck-menu .deck-menu-tint.active { box-shadow: 0 0 0 2px var(--accent); }
 .deck-menu button.danger:hover { background: var(--surface); }
 
 /* ---------- 보기 모드(#app[data-ui-mode="view"]) ----------

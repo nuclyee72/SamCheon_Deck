@@ -8,6 +8,8 @@
  * onHighlight("general" | "tactic", 이름)로 같은 이름의 장수/전법을 보드 전체(덱·다른 리스트)에서
  * 강조한다 — 보기 모드에서도 되어야 해서 onAction과 따로 둔다.
  */
+import { syncTint } from "./DeckBoard.js";
+
 const DEFAULT_AVATAR = "assets/default-avatar.svg";
 
 export function createListBoard(deck, { onInput, onAction, onHighlight }) {
@@ -80,6 +82,7 @@ export function createListBoard(deck, { onInput, onAction, onHighlight }) {
 export function syncListBoard(el, deck, portraitUrlFor) {
   setInput(el.querySelector(".list-season"), deck.season);
   el.classList.toggle("locked", !!deck.locked);
+  syncTint(el, deck);
 
   const gensEl = el.querySelector(".list-generals");
   syncItems(gensEl, deck.listGenerals.length, (i) => {
