@@ -1,0 +1,1583 @@
+/* 공용 기반 스타일 — 가계도 메이커(Gagedo) style.css에서 그대로 가져옴(색 변수·다크모드·툴바·캔버스·
+   모달·관계선 등). 덱 전용 스타일은 style.css. 가계도 전용 규칙도 섞여 있지만 해당 요소가 없어 무해하다. */
+
+:root {
+  --bg: #eef1f5;
+  --panel-bg: #ffffff;
+  --surface: #f8f9fb; /* 패널 안의 옅은 박스(사진 드롭존, 모달 버튼 등) */
+  --border: #dde2e8;
+  --text: #222831;
+  --muted: #6b7280;
+  --accent: #3f6fd6;
+  --accent-soft: #e5edff;
+  --accent-hover: #3560bf;
+  --accent-glow: rgba(63, 111, 214, 0.45);
+  --danger: #d0483e;
+  --viewport-bg: #f6f7f9;
+  --viewport-dot: #d3d9e0;
+  --shadow: rgba(20, 30, 50, 0.18);
+  --panel-shadow: rgba(0, 0, 0, 0.08);
+  --modal-shadow: rgba(0, 0, 0, 0.2);
+  --overlay: rgba(20, 25, 35, 0.4);
+  --snap-accent-2: #e07a3f;
+  --card-w: 132px;
+  --photo-size: 96px;
+  color-scheme: light;
+}
+
+/* 다크 모드 — 값만 갈아끼우면 되도록 색은 전부 위 변수를 거쳐서 쓴다(하드코딩 최소화). */
+:root[data-theme="dark"] {
+  --bg: #14171c;
+  --panel-bg: #1c2028;
+  --surface: #262b34;
+  --border: #363c47;
+  --text: #e7eaf0;
+  --muted: #98a1b0;
+  --accent: #5b8def;
+  --accent-soft: #24365e;
+  --accent-hover: #7ba5f2;
+  --accent-glow: rgba(91, 141, 239, 0.55);
+  --danger: #e37669;
+  --viewport-bg: #14171c;
+  --viewport-dot: #2c313c;
+  --shadow: rgba(0, 0, 0, 0.45);
+  --panel-shadow: rgba(0, 0, 0, 0.35);
+  --modal-shadow: rgba(0, 0, 0, 0.55);
+  --overlay: rgba(0, 0, 0, 0.6);
+  --snap-accent-2: #f2954f;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  /* 모바일에서 캔버스를 팬(드래그)할 때 화면 가장자리에서 당겨 새로고침되거나 통통 튀는(러버밴드)
+     기본 동작이 우리 팬 동작과 부딪히지 않게 막는다. */
+  overscroll-behavior: none;
+}
+
+#app {
+  height: 100vh;
+  /* 모바일 브라우저는 주소창이 늘었다 줄었다 하면서 100vh가 실제 화면보다 커지곤 한다(iOS 사파리가
+     특히 심함) — 그럴 때 아래쪽이 브라우저 UI에 가려지는 문제를 100dvh(동적 뷰포트 높이)로 막는다.
+     dvh를 모르는 구형 브라우저는 이 줄을 그냥 무시하고 위의 100vh가 그대로 적용된다. */
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  /* 배경 드래그(팬)나 카드 드래그 중에 마우스가 이름/라벨 텍스트 위를 지나가면서 브라우저 기본
+     텍스트 선택(파랗게 하이라이트)이 걸리는 걸 막는다. 실제로 타이핑하는 입력창들은 아래에서
+     다시 풀어준다. */
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+}
+
+#app input,
+#app textarea {
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+}
+
+/* ---------- Toolbar ---------- */
+
+#toolbar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 8px 14px;
+  /* 노치/펀치홀 기기에서 툴바가 그 아래 가려지지 않도록 안전 영역만큼 여백을 더한다
+     (safe-area-inset이 없는 기기에선 env()가 0이라 기존 padding과 동일하게 동작). */
+  padding-top: calc(8px + env(safe-area-inset-top, 0px));
+  padding-left: calc(14px + env(safe-area-inset-left, 0px));
+  padding-right: calc(14px + env(safe-area-inset-right, 0px));
+  background: var(--panel-bg);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  /* #inspector(오른쪽 사이드바)가 top:0부터 시작해서 툴바 오른쪽 끝(내보내기/가져오기/다크모드
+     버튼)까지 덮어버리는 바람에, 사이드바가 열려 있으면 그 버튼들을 못 누르던 문제 — 툴바를
+     사이드바보다 위로 둔다(정작 겹치는 영역은 사이드바의 빈 여백이라 가려도 상관없다). */
+  z-index: 35;
+}
+
+.toolbar-group-right {
+  /* 이 묶음부터 오른쪽 끝으로 밀어붙인다 — 뒤따르는 저장 인디케이터도 자연히 그 옆(오른쪽)에 붙는다. */
+  margin-left: auto;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#toolbar button, .file-btn {
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+  color: var(--text);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+#toolbar button:hover, .file-btn:hover { background: var(--surface); }
+
+/* 가계도 ↔ 덱 보드 페이지 이동 링크 */
+#toolbar .toolbar-link {
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+  padding: 6px 4px;
+  white-space: nowrap;
+}
+#toolbar .toolbar-link:hover { color: var(--accent); }
+#toolbar button.toggle.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.file-btn { position: relative; overflow: hidden; display: inline-block; }
+.file-btn input[type="file"] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer;
+}
+
+.save-indicator {
+  /* margin-left:auto를 여기 또 두면 .toolbar-group-right(다크 모드 버튼)의 auto와 남는 공간을
+     반씩 나눠 가져서, 내보내기/가져오기가 오른쪽 끝에 안 붙고 중간에 붕 뜨는 문제가 있었다 —
+     오른쪽 정렬은 .toolbar-group-right 하나만 맡는다. */
+  font-size: 12px;
+  color: var(--muted);
+  /* "저장 중…"/"저장됨" 텍스트 길이가 서로 달라서(실측 약 49px vs 36px), 폭을 안 고정해두면
+     바뀔 때마다 이 텍스트 자체보다 왼쪽에 있는 💾/🌙 버튼들까지 같이 좌우로 밀렸다(flex가 전체
+     오른쪽 그룹을 한 덩어리로 끝에 붙이다 보니, 이 텍스트 폭이 곧 그 덩어리 전체 폭이 되어버림).
+     가장 긴 문구보다 넉넉한 고정 폭을 줘서, 글자가 바뀌어도 이 자리 자체의 크기가 안 변하게 한다. */
+  display: inline-block;
+  width: 60px;
+  text-align: left;
+}
+
+
+/* ---------- Viewport / canvas ---------- */
+
+#viewport {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  background-color: var(--viewport-bg);
+  background-image: radial-gradient(circle, var(--viewport-dot) 1px, transparent 1px);
+  background-size: 24px 24px;
+  cursor: grab;
+  touch-action: none;
+  -webkit-touch-callout: none;
+}
+
+#viewport:active { cursor: grabbing; }
+#viewport.connect-mode { cursor: crosshair; }
+#viewport.field-draw-mode { cursor: crosshair; }
+
+#stage {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+}
+
+/* 팬/줌이 실제로 진행 중인 동안에만 걸어서(Camera.setTransforming) 부드럽게 만든다.
+   항상 걸어두면 브라우저가 매번 다시 그리지 않고 이미 그려둔 화면을 GPU로 늘리거나
+   줄이기만 해서, 특히 축소했을 때 전체적으로 흐릿하게 보인다 — 조작이 멎으면 이 클래스가
+   빠지면서 원래 해상도로 다시 그려 선명해진다. */
+#stage.is-transforming {
+  will-change: transform;
+}
+
+#lines-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  overflow: visible;
+  pointer-events: none;
+}
+
+#world {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 1px;
+}
+
+#fields-layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  overflow: visible;
+}
+
+#empty-hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--muted);
+  text-align: center;
+  pointer-events: none;
+  font-size: 14px;
+}
+
+/* 인물 카드를 드래그하는 동안에만 화면 아래 가운데 나타나는 휴지통 — 여기로 끌어다 놓으면 삭제 */
+#trash-drop {
+  position: fixed;
+  left: 50%;
+  /* 노치/홈 인디케이터가 있는 기기에서 화면 맨 아래에 깔리지 않도록 안전 영역만큼 더 띄운다. */
+  bottom: calc(28px + env(safe-area-inset-bottom, 0px));
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: var(--panel-bg);
+  border: 2px solid var(--border);
+  box-shadow: 0 4px 16px var(--shadow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  line-height: 1;
+  opacity: 0;
+  transform: translate(-50%, 16px) scale(0.9);
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+  z-index: 40;
+}
+
+#trash-drop.visible {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+
+#trash-drop.armed {
+  background: var(--danger);
+  border-color: var(--danger);
+  transform: translate(-50%, 0) scale(1.15);
+}
+
+/* 배경을 Shift+드래그하면 나타나는 사각형 선택 영역(마키/러버밴드) — JS가 화면 좌표 기준으로
+   위치/크기(left/top/width/height)를 실시간으로 계산해 인라인 스타일로 넣는다.
+   #viewport 안에서 #stage(카드/텍스트박스/관계선)보다 먼저 오는 형제로 둬서(index.html) 일부러
+   z-index를 주지 않는다 — 그래야 둘 다 "auto" 단계라 DOM 순서 그대로 쌓여서, 배경 위·카드
+   아래에 자연스럽게 낀다(드래그 중에도 인물 카드가 마키 사각형에 가려지지 않도록). */
+#marquee-box {
+  position: fixed;
+  display: none;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+#marquee-box.visible { display: block; }
+
+/* 마키로 인물/텍스트박스를 한꺼번에 여러 개 골랐을 때 뜨는 작은 툴바 — 몇 개 골랐는지 보여주고
+   한 번에 잠그거나 풀 수 있게 한다. 툴바 바로 아래, 화면 위쪽 중앙에 떠 있다. */
+.bulk-toolbar {
+  position: fixed;
+  top: calc(var(--toolbar-h, 48px) + 12px);
+  left: 50%;
+  transform: translate(-50%, -8px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 8px 10px 8px 16px;
+  box-shadow: 0 4px 16px var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 32;
+}
+
+.bulk-toolbar.visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+
+.bulk-toolbar-count {
+  font-size: 13px;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.bulk-toolbar button {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bulk-toolbar button:hover { background: var(--accent-soft); }
+
+.bulk-toolbar button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ---------- Person card ---------- */
+
+.person-card {
+  position: absolute;
+  width: var(--card-w);
+  /* 세로는 카드 전체 높이의 절반이 아니라 사진 원의 반지름만큼만 올려서, 태그가 늘어나
+     카드 키가 바뀌어도 원과 이름 위치(연결선이 붙는 기준점)는 항상 그대로 고정되게 한다. */
+  transform: translate(-50%, calc(var(--photo-size) / -2));
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  touch-action: none;
+  -webkit-touch-callout: none; /* iOS 길게 누르기 메뉴가 드래그를 방해하지 않게 */
+}
+
+.person-photo {
+  width: var(--photo-size);
+  height: var(--photo-size);
+  margin: 0 auto 8px;
+  /* 모양(원/네모/둥근 네모)은 여기서 고정하지 않고 .shape-*(아래, PersonCard.js가 붙여줌)가
+     결정한다 — 기본값은 JS 쪽에서 person.photoShape가 없으면 "circle"로 폴백. */
+  overflow: hidden;
+  background: var(--surface);
+  /* border 대신 outline을 쓴다 — outline은 이 엘리먼트의 overflow:hidden에 안 잘리면서(사진을
+     모양대로 자르는 용도는 그대로 유지), outline-offset을 굵기의 절반만큼 음수로 줘서 원래 경계선을
+     중심으로 안쪽 절반·바깥쪽 절반이 대칭으로 걸치게 한다 — 두께가 늘어도 border-box처럼 사진
+     쪽으로만 파고들지 않고, 바깥쪽으로도 같이 커진다("안팎 모두 커짐"). 정확한 -offset 값은
+     굵기가 바뀔 때마다 PersonCard.js가 함께 다시 계산해서 넣는다.
+     (outline은 border-radius를 따라 그려진다 — 최신 브라우저 기준.) */
+  outline: 3px solid var(--panel-bg);
+  outline-offset: -1.5px;
+  box-shadow: 0 2px 10px var(--shadow);
+  transition: outline-color 0.15s ease, box-shadow 0.15s ease, border-radius 0.15s ease, transform 0.15s ease;
+}
+
+/* 사진 모양 3종 — 사이드바의 모양 미리보기 아이콘(.p-shape-preview)도 이 클래스들을 그대로
+   재사용한다(같은 시각 언어). */
+.shape-circle { border-radius: 50%; }
+.shape-square { border-radius: 6px; }
+.shape-rounded { border-radius: 22%; }
+
+/* border-color(outline)는 여기서 건드리지 않는다 — 사용자가 사진 테두리 색을 직접 골랐다면
+   (PersonCard.js가 인라인 style.borderColor로 지정) 선택 표시 때문에 그 색이 가려지면 안 되므로.
+   대신 선택 여부는 outline과는 별개인 box-shadow 두 겹으로 나타낸다: 번짐 없는 또렷한 색
+   테두리(스프레드만 있고 blur는 0인 첫 번째 값)로 "테두리가 생겼다"는 게 확실히 보이게 하고,
+   그 바깥에 은은한 글로우(두 번째 값)를 더해 부드럽게 마무리한다 — 글로우만 있을 때는
+   경계가 흐릿해서 선택 여부가 잘 안 보인다는 피드백에 따라 추가.
+   .marquee-hover: 마키로 사각형을 그리는 도중(아직 드롭 전) 그 안에 걸린 카드를 실시간으로
+   미리 보여주는 상태 — 확정된 .selected와 같은 표시를 그대로 재사용해서 "이대로 떼면
+   선택된다"는 걸 바로 알 수 있게 한다. */
+.person-card.selected .person-photo,
+.person-card.marquee-hover .person-photo {
+  box-shadow: 0 0 0 3px var(--accent), 0 2px 12px var(--accent-glow);
+}
+
+/* .drag-locked-preview: 마키로 걸렸거나(잠시 후 선택될) 이미 선택된 상태로 그룹을 끄는 중인데
+   이 인물은 잠겨 있어서 이번엔 같이 안 움직이는 경우 — "얘만 왜 안 따라오지?"를 헷갈리지 않게
+   사진을 흐리게 낮추고 자물쇠를 띄운다. 드래그가 끝나면(마키 확정/그룹 드래그 종료) 클래스가
+   빠지면서 원래 모습으로 돌아온다. */
+.person-card.drag-locked-preview .person-photo {
+  opacity: 0.4;
+  box-shadow: none;
+}
+
+.person-card.drag-locked-preview::after {
+  content: "🔒";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: var(--photo-size);
+  height: var(--photo-size);
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  line-height: 1;
+  pointer-events: none;
+  text-shadow: 0 1px 4px var(--shadow);
+}
+
+.person-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  -webkit-user-drag: none;
+  user-select: none;
+  /* iOS에서 길게 누르면 뜨는 "사진 저장/복사" 메뉴가 카드 드래그를 방해하지 않게 막는다. */
+  -webkit-touch-callout: none;
+}
+
+.person-name {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.person-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 3px;
+  margin-top: 5px;
+}
+
+.tag-chip {
+  font-size: 10px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 999px;
+  padding: 2px 7px;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.tag-chip.removable {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.tag-chip.removable:hover {
+  background: var(--accent-soft);
+  border-color: var(--border);
+}
+
+/* ×는 버튼이 아니라 그냥 곁들이는 텍스트 — 칩 전체가 클릭 대상(눌러서 삭제, 확인창 뜸)이다. */
+.tag-chip-x {
+  color: var(--muted);
+  line-height: 1;
+}
+
+/* ---------- 자유 텍스트 박스 ---------- */
+
+.text-box {
+  position: absolute;
+  /* (x,y)는 왼쪽 위 모서리 — 일부러 transform으로 중심을 맞추지 않는다. 중심 기준으로 두면
+     리사이즈(글자 크기 확대)할 때 네 방향 전부로 똑같이 부풀어서, 오른쪽 아래 손잡이를 끄는데
+     왼쪽 위 모서리까지 같이 움직이는 것처럼 보여 어색했다 — 왼쪽 위를 고정해두면 커질 때
+     자연히 오른쪽 아래로만 늘어난다(일반적인 리사이즈 손잡이 동작과 동일). */
+  touch-action: none;
+  -webkit-touch-callout: none; /* iOS 길게 누르기 메뉴가 드래그를 방해하지 않게 */
+  z-index: 15; /* 사람 카드/관계선보다 위, 항상 라벨처럼 보이도록 */
+}
+
+/* 항상 보이는 흰(패널 배경) 둥근 사각형 카드 — 사람 카드처럼 무엇이든 그 위에 놓인 걸 알 수 있게.
+   width/height는 JS(TextBox.js)가 box.width/height를 그대로 픽셀로 넣는다 — 글자 크기와는
+   무관한 독립된 값(모서리로 상자 크기만 바꾸고, 글자 크기는 사이드바에서만 바꾼다). */
+.text-box-content {
+  box-sizing: border-box; /* width/height에 padding/border가 포함되게(모서리 드래그가 정확히 그 크기가 되도록) */
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--panel-bg);
+  box-shadow: 0 2px 8px var(--shadow);
+  color: var(--text);
+  font-size: 20px; /* JS(TextBox.js)가 인라인으로 덮어쓴다 */
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  overflow: hidden; /* 상자보다 글자가 많으면(작게 줄였을 때) 넘치지 않고 잘리게 */
+  cursor: pointer;
+  user-select: none; /* 클릭하면 인라인 편집이 아니라 사이드바가 열리므로, 드래그와 헷갈리지 않게 선택은 막는다 */
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* "배경 없음" — 카드 배경/테두리/그림자 없이 순수한 텍스트만 떠 있는 라벨처럼 쓸 때. 이후에
+   나오는 :hover/.selected/.marquee-hover 규칙과 특이도(셋 다 클래스 2~3개 조합)가 같으므로,
+   소스 순서상 이 규칙이 먼저 와야 그 뒤의 강조 규칙들이 자연히 이겨서 "평상시엔 안 보이지만
+   찾을 때(호버/선택)는 여전히 강조 테두리가 보이는" 동작이 된다. */
+.text-box.no-bg .text-box-content {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.text-box:hover .text-box-content {
+  border-color: var(--accent);
+}
+
+/* 사람 카드와 같은 이유로 border-color 변경만으로는(원래도 1px라 얇음) 선택 여부가 잘 안
+   보여서, 번짐 없는 또렷한 테두리(스프레드 2px, blur 0)를 box-shadow로 덧붙이고 그 바깥에
+   은은한 글로우를 더한다. */
+.text-box.selected .text-box-content,
+.text-box.marquee-hover .text-box-content {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent), 0 2px 12px var(--accent-glow);
+}
+
+/* 사람 카드의 .drag-locked-preview와 같은 결 — 마키 미리보기 중이거나 그룹 드래그 중에 잠긴
+   텍스트 박스는 흐리게 + 자물쇠로 "이번엔 안 움직인다"를 보여준다. */
+.text-box.drag-locked-preview .text-box-content {
+  opacity: 0.4;
+}
+
+.text-box.drag-locked-preview::after {
+  content: "🔒";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* 리사이즈 손잡이(모서리) — 선택(사이드바가 열려 있는 상태)했을 때만 보이고 그때만 조작 가능하다.
+   선택 전에는 안 보이는 채로 핸들이 클릭을 가로채는 일도 없게(pointer-events:none) 막아서,
+   "박스를 클릭/이동하려 했는데 의도치 않게 리사이즈가 걸리는" 문제를 없앤다. */
+.text-box-resize {
+  position: absolute;
+  right: -7px;
+  bottom: -7px;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  background:
+    linear-gradient(135deg, transparent 0 40%, var(--panel-bg) 40% 46%, transparent 46% 60%, var(--panel-bg) 60% 66%, transparent 66%),
+    var(--accent);
+  border: 2px solid var(--panel-bg);
+  box-shadow: 0 1px 4px var(--shadow);
+  cursor: nwse-resize;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.1s ease;
+}
+
+.text-box.selected .text-box-resize {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 왼쪽 위 리사이즈 손잡이 — 위 오른쪽 아래 손잡이와 생김새(잡는 느낌의 대각선 그립 아이콘)는
+   그대로 재사용하고 위치만 반대쪽 모서리로 옮긴다. */
+.text-box-resize-tl {
+  position: absolute;
+  left: -7px;
+  top: -7px;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  background:
+    linear-gradient(135deg, transparent 0 40%, var(--panel-bg) 40% 46%, transparent 46% 60%, var(--panel-bg) 60% 66%, transparent 66%),
+    var(--accent);
+  border: 2px solid var(--panel-bg);
+  box-shadow: 0 1px 4px var(--shadow);
+  cursor: nwse-resize;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.1s ease;
+}
+
+.text-box.selected .text-box-resize-tl {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ---------- 필드(인물을 묶는 컨테이너 + 템플릿 자리) ---------- */
+
+.field-box {
+  position: absolute; /* (x,y) = 왼쪽 위 모서리, 텍스트박스와 같은 규칙 */
+  touch-action: none;
+  -webkit-touch-callout: none;
+  /* z-index를 안 준다 — #fields-layer가 #lines-layer/#world보다 DOM에서 먼저 오므로
+     (index.html) z-index:auto끼리는 그 순서 그대로 가장 아래에 깔린다("그 위에 인물이
+     올라가는" 배경 컨테이너라는 의도와 맞음). */
+}
+
+/* 텍스트박스 카드와 같은 배경/테두리이지만 텍스트가 없는 완전히 빈 패널.
+   --field-bg/--field-border-*는 FieldBox.js가 사용자가 사이드바에서 고른 배경/테두리 색·굵기·
+   모양을 넣어주는 자리(안 골랐으면 프로퍼티 자체가 없어서 뒤의 기본값이 그대로 쓰임) — 굳이
+   border-color를 직접 인라인으로 박지 않고 변수로 받는 이유는, 아래 호버/선택/템플릿편집
+   강조 규칙들이 이 커스텀 색과 무관하게 여전히 accent색으로 덮어써야 하기 때문. */
+.field-content {
+  box-sizing: border-box;
+  border: var(--field-border-width, 1.5px) var(--field-border-style, dashed) var(--field-border-color, var(--border));
+  border-radius: 16px;
+  background: var(--field-bg, var(--surface));
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.field-box:hover .field-content {
+  border-color: var(--accent);
+}
+
+.field-box.selected .field-content,
+.field-box.marquee-hover .field-content {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent), 0 2px 12px var(--accent-glow);
+}
+
+.field-box.drag-locked-preview .field-content {
+  opacity: 0.4;
+}
+
+.field-box.drag-locked-preview::after {
+  content: "🔒";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* 템플릿 수정 모드로 켜져 있는 동안은 실선 강조 테두리로 "지금 이 필드를 편집 중"임을 보여준다. */
+.field-box.template-editing .field-content {
+  border-style: solid;
+  border-color: var(--accent);
+}
+
+.field-resize {
+  position: absolute;
+  right: -7px;
+  bottom: -7px;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  background:
+    linear-gradient(135deg, transparent 0 40%, var(--panel-bg) 40% 46%, transparent 46% 60%, var(--panel-bg) 60% 66%, transparent 66%),
+    var(--accent);
+  border: 2px solid var(--panel-bg);
+  box-shadow: 0 1px 4px var(--shadow);
+  cursor: nwse-resize;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.1s ease;
+}
+
+.field-box.selected:not(.self-locked) .field-resize {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 왼쪽 위 리사이즈 손잡이 — 위 오른쪽 아래 손잡이와 생김새는 그대로, 위치만 반대쪽 모서리로. */
+.field-resize-tl {
+  position: absolute;
+  left: -7px;
+  top: -7px;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  background:
+    linear-gradient(135deg, transparent 0 40%, var(--panel-bg) 40% 46%, transparent 46% 60%, var(--panel-bg) 60% 66%, transparent 66%),
+    var(--accent);
+  border: 2px solid var(--panel-bg);
+  box-shadow: 0 1px 4px var(--shadow);
+  cursor: nwse-resize;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.1s ease;
+}
+
+.field-box.selected:not(.self-locked) .field-resize-tl {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 템플릿 자리(점선 원) — 인물 사진 크기(--photo-size)와 맞춰서 실제 인물이 꽂혔을 때 자연스럽게
+   겹치게 한다. relX/relY(슬롯 중심)를 그대로 left/top으로 쓰고 transform으로 중심을 맞춘다
+   (인물 카드의 x/y가 사진 원 "중심"인 것과 같은 규칙). */
+.field-slot {
+  position: absolute;
+  width: var(--photo-size);
+  height: var(--photo-size);
+  transform: translate(-50%, -50%);
+  border: 2px dashed var(--muted);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 32px;
+  opacity: 0.6;
+  cursor: pointer;
+  transition: border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.field-slot::after {
+  content: "👤";
+  opacity: 0.5;
+}
+
+/* 템플릿 슬롯끼리 그은 "관계" 안내선 — .field-content/.field-slot과 같은 원점(필드 왼쪽 위
+   모서리)을 쓰는 SVG. 필드 자신의 드래그 대상에서 빠지도록(FieldBox.attachFieldDrag의 filter)
+   .field-slot과 같은 취급을 받는다. */
+.field-rel-lines {
+  position: absolute;
+  left: 0;
+  top: 0;
+  overflow: visible;
+  pointer-events: none; /* 각 안내선(.field-rel-line)만 개별적으로 클릭 가능하게 켠다 */
+}
+
+.field-rel-line-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 16px;
+  pointer-events: stroke;
+  cursor: pointer;
+}
+
+.field-rel-line-visible {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 2px;
+  stroke-dasharray: 6 5;
+  pointer-events: none;
+}
+
+.field-rel-line:hover .field-rel-line-visible {
+  stroke: var(--accent);
+}
+
+.field-slot:hover {
+  border-color: var(--accent);
+  opacity: 1;
+}
+
+/* "&관계" 연결 모드로 슬롯끼리 순서대로 고르는 동안 — 인물 카드의 .selected와 같은 강조. */
+.field-slot.picked {
+  border-color: var(--accent);
+  border-style: solid;
+  opacity: 1;
+  box-shadow: 0 0 0 2px var(--accent), 0 2px 12px var(--accent-glow);
+}
+
+/* ---------- Relationship lines (SVG) ---------- */
+
+/* stroke-width는 더 이상 여기(또는 RelationshipLine.js)에 고정값으로 안 둔다 — TreeRenderer.js의
+   _applyLineScale/updateLineScaleForZoom이 배율(camera.scale)이 바뀔 때마다 "목표 화면 폭 ÷ 배율"을
+   world 좌표계 stroke-width로 직접 계산해 넣는다. (참고: vector-effect:non-scaling-stroke는
+   SVG 내부 transform만 상쇄하고, #stage에 건 CSS transform: scale(...)로 인한 확대/축소는 상쇄
+   못 한다 — 실제로 테스트해서 확인함. 그래서 많이 축소하면 의도한 폭이 1 실제 픽셀보다 작아지는데
+   브라우저가 최소 폭 근처로 "올림"해서 그려버려, 카드는 계속 작아지는데 선만 상대적으로 안
+   가늘어져 오히려 굵어 보이는 문제가 있었다 — JS가 직접 배율의 역수를 곱해 넣어야 진짜로 해결됨.) */
+.rel-line-hit {
+  fill: none;
+  stroke: transparent;
+  pointer-events: stroke;
+  cursor: pointer;
+}
+
+.rel-line-visible {
+  fill: none;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+/* "화살표" 유형의 화살촉(<marker> 안의 <path>) — 선 자신과 별개의 엘리먼트라 fill은
+   RelationshipLine.js가 매번 선의 stroke와 같은 색으로 맞춰 넣지만(applyLineStyle),
+   아래 다크모드 밝기 보정처럼 CSS 필터는 자동으로 안 따라오므로 선과 나란히 같이 걸어둔다
+   (안 그러면 다크모드에서 화살촉만 원래 밝기로 남아 선보다 어둡게 붕 떠 보인다). */
+.rel-arrowhead-path {
+  stroke: none;
+}
+
+/* 관계선 색은 RelationshipLine.js가 stroke 속성으로 직접 지정한다(TYPE_STYLE) — SVG presentation
+   attribute는 CSS보다 우선순위가 낮으므로, 이 규칙이 없어도 이미 색을 덮어쓸 수 있지만 지금은
+   같은 색을 그대로 두고 다크 배경에서도 잘 보이도록 밝기만 살짝 올린다. */
+:root[data-theme="dark"] .rel-line-visible,
+:root[data-theme="dark"] .rel-arrowhead-path {
+  filter: brightness(1.5) saturate(1.1);
+}
+
+/* 사이드바가 열려 있는(선택된) 관계선 강조 — 인물 카드/텍스트 박스의 selected 표시와 같은 결. */
+.rel-line.selected .rel-line-visible {
+  /* stroke-width는 TreeRenderer.js._applyLineScale이 selected 여부를 보고 직접 계산해 넣는다
+     (여기서 고정값으로 덮어쓰면 화면 배율에 안 맞는 굵기가 되어버림). */
+  filter: drop-shadow(0 0 3px var(--accent-glow));
+}
+
+:root[data-theme="dark"] .rel-line.selected .rel-line-visible {
+  filter: brightness(1.5) saturate(1.1) drop-shadow(0 0 3px var(--accent-glow));
+}
+
+.rel-line-label {
+  font-size: 11px;
+  fill: var(--muted);
+  text-anchor: middle;
+  pointer-events: auto; /* 클릭해서 바로 수정할 수 있도록 (부모 선의 hit-stroke와는 별도로) */
+  cursor: text;
+}
+
+.rel-line-label-hit {
+  fill: transparent;
+  pointer-events: all;
+  cursor: text;
+}
+
+.rel-line-label-edit {
+  pointer-events: auto;
+}
+
+.rel-line-label-edit input {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: var(--panel-bg);
+  color: var(--text);
+  font-size: 11px;
+  font-family: inherit;
+  text-align: center;
+  padding: 0 2px;
+}
+
+.snap-guide {
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-dasharray: 6 5;
+  opacity: 0.75;
+  pointer-events: none;
+  display: none;
+}
+
+/* 부모 쌍(부모-자식(부모2)) 기준 중심/n등분/템플릿 간격 스냅 — 어느 부모 선을 기준으로 달라붙었는지
+   보여주는 점선. 일반 스냅 가이드(.snap-guide)와 헷갈리지 않게 색을 다르게 둔다. */
+.family-snap-guide {
+  stroke: var(--snap-accent-2);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 4;
+  opacity: 0.85;
+  pointer-events: none;
+  display: none;
+}
+
+
+/* ---------- Inspector panel ---------- */
+
+#inspector {
+  position: fixed;
+  /* 0이 아니라 툴바의 실제 높이(main.js가 ResizeObserver로 재서 넣어주는 값)부터 시작한다 —
+     top:0으로 두고 z-index로 어느 한쪽을 위로 올리면, 겹치는 구간에 있는 반대쪽 버튼(툴바의
+     내보내기/가져오기 또는 사이드바의 닫기 ×)이 클릭이 안 먹는 문제가 생겼었다. */
+  top: var(--toolbar-h, 48px);
+  right: 0;
+  bottom: 0;
+  width: 300px;
+  background: var(--panel-bg);
+  border-left: 1px solid var(--border);
+  box-shadow: -4px 0 16px var(--panel-shadow);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transform: translateX(100%);
+  transition: transform 0.2s ease;
+  z-index: 30;
+  overflow-y: auto;
+  /* 내용(인물/텍스트 박스/관계선 중 어느 모드든)이 패널 높이보다 길면 스크롤되는데, OS 기본
+     스크롤바는 테마와 안 어울리고 눈에 잘 안 띄어서 "스크롤이 되는지" 알아채기 어려울 수 있다 —
+     세 모드가 전부 이 하나의 #inspector 엘리먼트를 공유하므로, 여기 한 번만 스타일을 둬도
+     모든 사이드바(인물/텍스트 박스/관계선)에 똑같이 적용된다.
+     scrollbar-width/color는 Firefox, ::-webkit-scrollbar*는 Chrome/Safari/Edge용. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  /* 스크롤바가 콘텐츠 박스 안쪽 폭을 갉아먹지 않게, 필요 없을 때도 그 자리를 미리 비워둔다 —
+     안 그러면 내용이 늘어나 스크롤이 막 생기는 순간 입력창/버튼들이 스크롤바 폭(수 px)만큼
+     옆으로 밀리면서 좁아져 보였다(글자 수가 늘어 태그가 줄바꿈되는 것과 겹치면 특히 눈에 띔). */
+  scrollbar-gutter: stable;
+}
+
+/* flex-direction:column인 #inspector 안에서, 자식들은 기본값(flex-shrink:1)이라 세로 공간이
+   모자라면 스크롤되는 대신 찌그러진다 — 특히 .photo-drop(180×180 고정 크기 사진 박스)이 화면이
+   좁으면 몇 px짜리 납작한 줄로 눌려버렸다(실제로 재현: 짧은 화면에서 높이가 180px→4px로 줄어듦).
+   모든 직계 자식의 flex-shrink를 0으로 고정해서, 공간이 모자라면 위 overflow-y:auto가 스크롤로
+   처리하게 한다(찌그러지지 않고 원래 크기 그대로 유지). */
+#inspector > * {
+  flex-shrink: 0;
+}
+
+#inspector::-webkit-scrollbar { width: 8px; }
+#inspector::-webkit-scrollbar-track { background: transparent; }
+#inspector::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+#inspector::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+#inspector.open { transform: translateX(0); }
+
+.inspector-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.inspector-close {
+  border: none;
+  background: none;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--muted);
+}
+
+#inspector label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+#inspector input[type="text"],
+#inspector input[type="number"],
+#inspector select,
+#inspector textarea {
+  font-size: 14px;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-bg);
+  color: var(--text);
+  font-family: inherit;
+  resize: vertical;
+}
+
+/* 이름 입력 + 위치 잠금 버튼을 한 줄에. */
+.f-name-row {
+  display: flex;
+  gap: 6px;
+}
+
+.f-name-row .f-name {
+  flex: 1;
+  min-width: 0;
+}
+
+#inspector .f-lock-btn {
+  flex-shrink: 0;
+  padding: 7px 10px;
+  font-size: 15px;
+  line-height: 1;
+}
+
+#inspector .f-lock-btn.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* ---------- 사이드바 공용 ON/OFF 토글 한 줄(필드의 템플릿 수정/잠금, 텍스트박스의 배경 등) ---------- */
+
+.toggle-row {
+  flex-direction: row !important;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text) !important;
+  font-size: 13px !important;
+}
+
+.toggle-row button {
+  min-width: 44px;
+  font-size: 13px;
+  padding: 5px 10px;
+}
+
+.toggle-row button.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* ---------- 필드 사이드바(템플릿 추가/잠금 안내) ---------- */
+
+.field-template-add {
+  border-style: dashed !important;
+  color: var(--accent) !important;
+}
+
+.field-hint {
+  margin: -6px 0 0;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* ---------- "속성"(사진 모양/테두리) 접이식 섹션 ---------- */
+
+.p-attr-section {
+  /* flex+gap을 쓰면(닫혀 있어도) 크로미움이 summary 뒤 내용을 감싸는 내부 익명 박스(::details-content)를
+     여전히 "간격을 셀 항목" 하나로 치는지, 실제로 재현해보니 닫힌 상태에서도 gap 값만큼(10px) 빈
+     공간이 남았다 — 안의 내용이 전부 display:none이어도 마찬가지였다. margin 기반으로 바꾸면
+     그 문제가 없다(엘리먼트 자체가 없으면 margin도 그냥 안 생김). */
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 2px 12px;
+}
+
+.p-attr-section > summary ~ * {
+  margin-top: 10px;
+}
+
+.p-attr-section summary {
+  cursor: pointer;
+  padding: 8px 0;
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  /* 브라우저 기본 삼각형 마커 대신 ▸ 하나만 쓴다. */
+  list-style: none;
+}
+
+.p-attr-section summary::-webkit-details-marker { display: none; }
+.p-attr-section summary::marker { content: ""; }
+
+/* <details>가 닫혀 있을 때 summary 뒤 내용을 안 보이게 하는 건 원래 브라우저 기본 동작인데,
+   #inspector label{display:flex} 같은 규칙(ID 선택자라 우선순위가 높음)이 그 기본 동작을
+   덮어써버려서, 닫혀 있어도 내용이 레이아웃 공간을 그대로 차지해 "속성" 글씨 아래에 빈 여백이
+   남았다(실제로 재현: 닫힌 상태에서 첫 항목의 display가 flex, 높이 16px로 남아있었음). #inspector로
+   한 번 더 묶어 우선순위를 그 어떤 안쪽 규칙보다도 높여서 확실히 안 보이게(레이아웃에서도 빠지게) 한다. */
+#inspector .p-attr-section:not([open]) summary ~ * {
+  display: none;
+}
+
+.p-attr-arrow {
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+
+.p-attr-section[open] .p-attr-arrow {
+  transform: rotate(90deg);
+}
+
+.p-attr-section[open] summary {
+  padding-bottom: 2px;
+}
+
+.p-attr-section:last-of-type {
+  margin-bottom: 0;
+}
+
+/* ---------- Relationship inspector (색상/선 종류) ---------- */
+
+.rel-type-display {
+  font-size: 13px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 7px 9px;
+}
+
+.rel-color-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+/* #inspector button(일반 버튼 규칙, ID 선택자라 클래스 하나짜리보다 우선순위가 높다)이 border/
+   padding을 다시 덮어쓰지 않도록, 스와치 관련 규칙은 전부 #inspector로 한 번 더 묶어 우선순위를
+   맞춘다. 프리셋 8개가 사이드바(300px, "속성" 접이식 섹션 안이면 그보다 더 좁음) 폭 안에서
+   줄바꿈 없이 한 줄에 다 들어가도록 이전(28px)보다 작게 줄인 크기 — content-box 기준이라
+   테두리(1.5px×2)까지 합쳐 실제로는 조금 더 크다. */
+#inspector .rel-color-swatch {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  cursor: pointer;
+  transition: transform 0.1s ease, border-color 0.1s ease;
+}
+
+#inspector .rel-color-swatch:hover { transform: scale(1.1); }
+
+#inspector .rel-color-swatch.active {
+  border-color: var(--text);
+  box-shadow: 0 0 0 2px var(--accent-glow);
+}
+
+.rel-color-custom-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 화살표 유형일 때만 보이는 구획(단방향/양방향 선택 + 방향 바꾸기 버튼) — #inspector의
+   flex-column 자식들과 같은 결로 안쪽도 세로로 gap을 둬서 라벨/버튼이 붙어 보이지 않게 한다.
+   display:flex를 직접 주는 선택자라 [hidden]과 우선순위가 같아져(둘 다 특정성 0,0,1,0) 나중에
+   나온 이 규칙이 이겨버리는(그래서 hidden이어도 계속 보이는) 문제가 있어, [hidden] 쪽을 별도로
+   한 번 더 못박아둔다. */
+.rel-arrow-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rel-arrow-section[hidden] {
+  display: none;
+}
+
+.rel-color-input {
+  width: 44px;
+  height: 30px;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel-bg);
+  cursor: pointer;
+}
+
+.rel-color-reset {
+  flex: 1;
+}
+
+/* 툴바 버튼과 같은 생김새로 통일 — "이 인물 삭제"만 따로 빨간색으로 튀지 않게 */
+#inspector button {
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+  color: var(--text);
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+#inspector button:hover {
+  background: var(--surface);
+}
+
+.f-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+/* 사이드바의 태그 칩은 카드 위 태그(.tag-chip 기본값)보다 훨씬 크게 — 이 안에서만 키운다. */
+.f-tags .tag-chip {
+  font-size: 13px;
+  padding: 5px 10px;
+}
+
+/* 인물 사진/필드 테두리 굵기 슬라이더 옆에 지금 값(px)을 보여주는 작은 표시 — 나머지 라벨
+   텍스트(연한 회색)보다 눈에 띄게 진한 색+굵게 둔다. */
+.p-border-width-value,
+.field-border-width-value {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.p-shape-options {
+  display: flex;
+  gap: 8px;
+}
+
+/* #inspector button(ID 선택자)이 다시 덮어쓰지 않도록 #inspector로 한 번 더 묶는다 — 색상
+   스와치/굵기 슬라이더 때와 같은 종류의 우선순위 문제. */
+#inspector .p-shape-btn {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: pointer;
+}
+
+#inspector .p-shape-btn:hover { border-color: var(--accent); }
+
+#inspector .p-shape-btn.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.p-shape-preview {
+  display: block;
+  width: 20px;
+  height: 20px;
+  background: var(--muted);
+}
+
+/* 사진 등록: 원형 박스가 클릭(파일 선택)·드래그앤드롭·붙여넣기(Ctrl+V)를 담당하고, 그 바로
+   아래 입력창이 URL을 담당한다 — 안내 문구 없이 박스 자체(제목 텍스트 대신 title 속성)로 안내. */
+.photo-drop {
+  width: 180px;
+  height: 180px;
+  margin: 2px auto 0;
+  overflow: hidden;
+  border: 2px dashed var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  position: relative;
+  /* 모양은 .shape-*(사진 모양 선택기에 맞춰 InspectorPanel.js가 붙여줌)가 결정한다 — 실제 카드의
+     사진과 똑같은 모양으로 미리 보여줘서 업로드 전에도 어떻게 나올지 알 수 있게 한다. */
+}
+
+.photo-drop.dragover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.photo-drop-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* URL 입력창 + "이미지 수정"(연필 아이콘) 버튼을 한 줄에 나란히 — 사진 박스 바로 아래. */
+.f-photo-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.f-photo-url {
+  flex: 1;
+  min-width: 0; /* flex 자식은 기본 min-width:auto라 내용이 길면 줄을 넘어가버릴 수 있어 명시적으로 풀어준다 */
+}
+
+/* #inspector button(ID 선택자라 우선순위가 높다)의 기본 버튼 모양은 그대로 두고(테두리/배경 등),
+   크기·정렬만 아이콘 버튼에 맞게 조정한다. */
+#inspector .f-photo-edit {
+  flex-shrink: 0;
+  padding: 7px 10px;
+  font-size: 15px;
+  line-height: 1;
+}
+
+/* display:block이 브라우저 기본 [hidden]{display:none} 규칙을 덮어써버려서, 사진이 없을 때도
+   "이미지 수정" 버튼이 계속 보이던 버그 — hidden 속성일 땐 명시적으로 다시 숨긴다. */
+.f-photo-edit[hidden] {
+  display: none;
+}
+
+/* ---------- Relationship type modal ---------- */
+
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: var(--overlay);
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.modal-overlay.open { display: flex; }
+
+.modal-box {
+  background: var(--panel-bg);
+  color: var(--text);
+  border-radius: 14px;
+  padding: 22px;
+  width: 260px;
+  text-align: center;
+  box-shadow: 0 10px 30px var(--modal-shadow);
+}
+
+.modal-box h3 { margin: 0 0 8px; font-size: 15px; }
+
+/* ---------- 툴바 드롭다운 공용(버튼 바로 아래 세로 메뉴) ----------
+   "&관계"의 유형 선택과 내보내기/가져오기 메뉴가 똑같은 생김새를 쓴다 —
+   .toolbar-dropdown(버튼을 감싸는 위치 기준점)/.toolbar-dropdown-menu(실제 메뉴)가
+   공용 스타일이고, .connect-dropdown/.io-dropdown 같은 개별 클래스는 열림 상태
+   토글과 JS에서 서로 구분해 targeting하는 용도로만 덧붙인다. */
+.toolbar-dropdown {
+  position: relative;
+  display: inline-flex;
+}
+
+.toolbar-dropdown-menu {
+  display: none;
+  flex-direction: column;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 160px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 6px;
+  gap: 2px;
+  box-shadow: 0 8px 24px var(--modal-shadow);
+  z-index: 45;
+}
+
+.toolbar-dropdown.open .toolbar-dropdown-menu { display: flex; }
+
+/* io-dropdown(💾)은 툴바 오른쪽 끝에 있어서, 다른 드롭다운처럼 왼쪽 정렬(left:0)로 열면 메뉴가
+   화면 오른쪽 밖으로 잘려 나간다 — 이 하나만 버튼 오른쪽 끝에 맞춰(right:0) 왼쪽으로 펼친다. */
+.io-dropdown .toolbar-dropdown-menu {
+  left: auto;
+  right: 0;
+}
+
+/* #toolbar button(ID 선택자라 우선순위가 높다)이 배경/패딩을 다시 덮어쓰지 않도록 #toolbar로
+   한 번 더 묶는다 — 사이드바 색상 스와치 때와 같은 종류의 우선순위 문제.
+   .file-btn("가져오기")도 메뉴 안에서는 다른 항목과 같은 생김새(테두리 없는 플랫 리스트)로
+   맞춘다 — 원래 툴바에서 쓰던 알약 모양 버튼 스타일과 다르다. */
+#toolbar .toolbar-dropdown-menu button,
+#toolbar .toolbar-dropdown-menu .file-btn {
+  border: none;
+  background: none;
+  color: var(--text);
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  display: block;
+  width: 100%;
+}
+
+#toolbar .toolbar-dropdown-menu button:hover,
+#toolbar .toolbar-dropdown-menu .file-btn:hover { background: var(--accent-soft); color: var(--accent); }
+
+/* 템플릿 메뉴 — 한 줄에 "넣기(이름)" 버튼과 삭제(×) 버튼이 나란히 있다. 이름이 길면 말줄임. */
+.template-menu-list { max-width: 260px; max-height: 320px; overflow-y: auto; }
+.template-menu-row { display: flex; align-items: center; gap: 2px; }
+#toolbar .template-menu-row button[data-template-insert] {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#toolbar .template-menu-row .template-menu-delete {
+  width: auto;
+  flex: none;
+  padding: 6px 8px;
+  color: var(--muted);
+}
+#toolbar .template-menu-row .template-menu-delete:hover { background: var(--surface); color: var(--danger); }
+.template-menu-empty {
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+  white-space: normal;
+  min-width: 200px;
+}
+
+/* ---------- 사진 위치/크기 조정(크롭) 모달 ---------- */
+
+.crop-modal-box {
+  width: auto;
+}
+
+.crop-canvas-wrap {
+  width: 280px;
+  height: 280px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.crop-canvas-wrap canvas {
+  display: block;
+  width: 280px;
+  height: 280px;
+  cursor: grab;
+  touch-action: none;
+}
+
+.crop-canvas-wrap canvas:active { cursor: grabbing; }
+
+#crop-zoom {
+  display: block;
+  width: 240px;
+  margin: 0 auto 16px;
+}
+
+.crop-modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.crop-modal-actions button {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.crop-modal-actions button:hover { background: var(--accent-soft); border-color: var(--accent); }
+
+.crop-modal-actions button.primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.crop-modal-actions button.primary:hover { background: var(--accent-hover); }
+
+@media (max-width: 640px) {
+  :root {
+    --card-w: 104px;
+    --photo-size: 76px; /* card-w를 줄인 비율에 맞춰 사진 원도 같이 줄인다(안 그러면 카드 폭을 거의 다 채워버림) */
+  }
+
+  /* 버튼이 한 줄에 다 안 들어가므로, 줄바꿈으로 여러 줄이 되어 캔버스를 잡아먹는 대신 가로로
+     스와이프해서 더 보는 한 줄 스크롤 툴바로 바꾼다. */
+  #toolbar {
+    flex-wrap: nowrap;
+    gap: 10px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  #toolbar::-webkit-scrollbar { display: none; }
+
+  .toolbar-group,
+  .save-indicator {
+    flex-shrink: 0; /* 가로 스크롤 안에서 버튼이 찌그러지지 않게 */
+  }
+
+  .toolbar-group-right {
+    /* 가로 스크롤에서는 오른쪽으로 밀어붙이는 대신 자연스러운 순서로 이어 붙인다 — auto 마진이
+       스크롤 영역 앞에 빈 공간을 만들어버리는 걸 막는다. */
+    margin-left: 0;
+  }
+
+  /* 오른쪽에서 슬라이드되는 세로 패널 대신, 화면 하단에서 올라오는 시트로 바꾼다
+     (Adv_Sudoku_Maker의 .floating-panel 모바일 처리와 같은 결) — 좁은 세로 화면에서
+     오른쪽 92vw짜리 패널이 캔버스 대부분을 가로로 밀어붙이듯 가리던 것보다, 위쪽에 약간의
+     캔버스만 남기고 아래에서 올라오는 시트가 훨씬 자연스럽다. #inspector는 원래도 인라인
+     left/top을 전혀 안 쓰는 순수 CSS 위치 패널이라(드래그 가능한 떠있는 창이 아님) 이
+     미디어 쿼리만으로 완전히 전환되고, 그 외 트랜지션(transform 0.2s)·스크롤 처리
+     (overflow-y:auto, scrollbar-gutter:stable)는 데스크톱 규칙 그대로 물려받는다. */
+  #inspector {
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: 0;
+    width: 100%;
+    max-height: 80vh;
+    max-height: 80dvh; /* dvh 미지원 브라우저는 위 vh 값을 그대로 씀 */
+    border-left: none;
+    border-top: 1px solid var(--border);
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -4px 16px var(--panel-shadow);
+    padding: 16px calc(16px + env(safe-area-inset-right, 0px))
+             calc(16px + env(safe-area-inset-bottom, 0px)) calc(16px + env(safe-area-inset-left, 0px));
+    transform: translateY(100%);
+  }
+
+  #inspector.open {
+    transform: translateY(0);
+  }
+
+  /* 시트 헤더(제목+×)를 손가락으로 끌면 항상 JS(main.js의 당겨서 닫기 제스처)가 직접 제어한다.
+     touch-action:none을 안 주면 브라우저가 첫 손가락 이동만으로 이미 "이건 스크롤/바운스다"로
+     판단해버려서, 그다음에 JS가 preventDefault를 불러도 이미 늦어(먹통이 되어) 당겨서 닫기가
+     들쭉날쭉하게(잘 안 먹는 것처럼) 느껴졌다 — 헤더 영역만 아예 네이티브 팬을 원천 차단해
+     경합 자체를 없앤다(내용 스크롤 영역은 그대로 둬서 평범하게 스크롤됨). */
+  .inspector-header {
+    touch-action: none;
+  }
+
+  /* 화면 크기 관련 버튼(축소/100%/확대/전체보기)은 모바일에선 감춘다 — 핀치 줌/팬으로 이미
+     다 되는 조작이라 좁은 화면에서 굳이 자리를 차지할 필요가 없다. */
+  .toolbar-zoom-group {
+    display: none;
+  }
+
+  /* "&관계"/"💾" 드롭다운 메뉴 — #toolbar가 가로 스크롤(overflow-x:auto)이라 CSS 규칙상
+     overflow-y도 강제로 auto가 되어(브라우저가 자동으로 맞춤), 기존처럼 position:absolute로
+     버튼 아래에 두면 툴바 바깥으로 튀어나온 부분이 그대로 잘려 안 보였다. fixed로 바꾸면
+     조상의 overflow 클리핑을 안 받으므로, 실제 화면 좌표(top/left)는 Toolbar.js의
+     _positionMobileMenu가 열릴 때마다 버튼 위치를 재서 인라인으로 넣어준다. */
+  .toolbar-dropdown-menu {
+    position: fixed;
+  }
+}
+
+/* 아주 좁은 화면(iPhone SE 등 320px대)에서는 사진 크롭 모달의 정사각형 캔버스(280px)가
+   모달 여백과 합쳐지면 화면 폭을 넘어설 수 있어 한 단계 더 줄인다. */
+@media (max-width: 360px) {
+  .crop-canvas-wrap,
+  .crop-canvas-wrap canvas {
+    width: 220px;
+    height: 220px;
+  }
+  #crop-zoom { width: 190px; }
+}
+
+/* 터치가 주 입력 수단인 기기(화면 크기와 무관 — 태블릿도 포함)는 손가락이 마우스 커서보다
+   훨씬 굵으므로, 누르는 영역을 넉넉하게 키운다. */
+@media (pointer: coarse) {
+  #toolbar button,
+  .file-btn {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+
+  .tag-chip.removable {
+    padding: 7px 12px;
+  }
+
+  /* 리사이즈 손잡이는 눈에 보이는 크기는 그대로 두되, 실제로 짚을 수 있는 영역만 넉넉히 넓힌다
+     (손가락으로 그 작은 점을 정확히 짚기는 어려우므로). */
+  .text-box-resize {
+    width: 24px;
+    height: 24px;
+    right: -10px;
+    bottom: -10px;
+  }
+}
+
+/* 모바일 툴바를 더 작게 — 반드시 위 @media(pointer:coarse) 블록보다 뒤에 와야 한다. 두 미디어
+   쿼리 다 셀렉터 특정성이 같으므로(#toolbar button 등), 실제 폰(좁은 화면 + 터치)에서는 둘 다
+   조건이 맞아 나중에 나오는 이 규칙이 이겨야 위 coarse 블록의 확대(padding:10px 14px 등)를
+   다시 줄일 수 있다 — 소스 순서만으로 우선순위를 낸다(이 파일 다른 곳(#inspector 92vw 등)에서도
+   이미 쓰던 패턴). */
+@media (max-width: 640px) {
+  #toolbar {
+    gap: 8px;
+    padding: 6px 10px;
+    padding-top: calc(6px + env(safe-area-inset-top, 0px));
+    padding-left: calc(10px + env(safe-area-inset-left, 0px));
+    padding-right: calc(10px + env(safe-area-inset-right, 0px));
+  }
+
+  #toolbar button,
+  .file-btn {
+    padding: 6px 9px;
+    font-size: 12px;
+  }
+}

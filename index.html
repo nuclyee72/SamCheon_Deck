@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" id="theme-color-meta" content="#ffffff">
+<title>천하결전 덱 보드</title>
+<!-- 공용 기반 스타일(base.css, 가계도 메이커에서 가져옴) + 덱 전용(style.css) -->
+<link rel="stylesheet" href="base.css">
+<link rel="stylesheet" href="style.css">
+<script>
+  // 첫 페인트 전에 테마부터 정해서 깜빡임을 막는다(저장값 없으면 OS 다크 모드 설정을 따름).
+  (function () {
+    try {
+      var stored = localStorage.getItem("gagedo-theme");
+      var theme = stored || (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+      var themeMeta = document.getElementById("theme-color-meta");
+      if (themeMeta) themeMeta.content = theme === "dark" ? "#1c2028" : "#ffffff";
+    } catch (e) { /* localStorage 접근 불가면 기본(라이트) */ }
+  })();
+</script>
+</head>
+<body>
+  <div id="app" class="deck-app">
+    <header id="toolbar"></header>
+
+    <main id="viewport">
+      <div id="stage">
+        <div id="decks-layer"></div>
+        <!-- 덱끼리의 관계선 — 덱 테두리에서 테두리까지라 보통은 빈 공간에만 그려지지만, 덱이 가까우면
+             라벨이 덱 위에 올 수 있어서 덱보다 위에 둔다(라벨이 가려지거나 못 누르는 일이 없게). -->
+        <svg id="rels-layer"></svg>
+        <svg id="lines-layer"></svg>
+      </div>
+      <div id="empty-hint">
+        <p>아직 덱이 없어요.</p>
+        <p>왼쪽 위 <strong>“+덱”</strong> 버튼으로 첫 덱을 만들어보세요.</p>
+      </div>
+    </main>
+
+    <div id="trash-drop" aria-hidden="true">🗑️</div>
+
+    <div id="deck-menu" class="deck-menu" role="menu" hidden>
+      <button type="button" data-menu="save-template">템플릿으로 저장</button>
+      <button type="button" data-menu="duplicate">복제</button>
+      <button type="button" data-menu="export-deck">이 덱 JSON으로 내보내기</button>
+      <button type="button" data-menu="toggle-lock">위치 잠금</button>
+      <button type="button" data-menu="delete" class="danger">삭제</button>
+    </div>
+
+    <!-- 관계선을 누르면 뜨는 편집 창(수정 모드에서만) -->
+    <div id="rel-editor" class="rel-editor" hidden>
+      <div class="rel-editor-head">
+        <strong class="rel-editor-title">관계</strong>
+        <button type="button" class="rel-editor-close" data-rel="close" aria-label="닫기">×</button>
+      </div>
+      <label class="rel-editor-row"><span>라벨</span><input type="text" class="rel-editor-label" placeholder="(없음)"></label>
+      <div class="rel-editor-row"><span>색</span><div class="rel-editor-swatches"></div></div>
+      <label class="rel-editor-row"><span>선</span><select class="rel-editor-style"></select></label>
+      <div class="rel-editor-arrow-row">
+        <label class="rel-editor-check"><input type="checkbox" class="rel-editor-bidir"> 양방향</label>
+        <button type="button" data-rel="flip">방향 뒤집기 ⇄</button>
+      </div>
+      <button type="button" class="rel-editor-delete" data-rel="delete">관계 삭제</button>
+    </div>
+
+    <input type="file" accept="image/*" id="portrait-file" hidden>
+
+    <div id="crop-modal" class="modal-overlay">
+      <div class="modal-box crop-modal-box">
+        <h3>초상화 위치·크기 조정</h3>
+        <div class="crop-canvas-wrap">
+          <canvas id="crop-canvas" width="280" height="280"></canvas>
+        </div>
+        <input type="range" id="crop-zoom" min="1" max="3" step="0.01" value="1" aria-label="확대/축소">
+        <div class="crop-modal-actions">
+          <button type="button" data-action="crop-cancel">취소</button>
+          <button type="button" class="primary" data-action="crop-apply">적용</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

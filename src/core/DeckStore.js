@@ -1,0 +1,143 @@
+/**
+ * 덱 보드 IndexedDB 래퍼. 가계도(familyTreeDB)와는 DB 자체가 달라서 서로 영향이 없다.
+ * - decks         : 보드 위 덱들
+ * - images        : 초상화 Blob(덱에는 portraitId만 저장)
+ * - deckTemplates : "템플릿으로 저장"한 덱 — 보드 데이터와 별개라 내보내기·실행취소에 안 섞인다
+ * - meta          : 뷰 상태(pan/zoom), 덱끼리의 관계선 목록("relations")
+ */
+const DB_NAME = "samgukDeckDB";
+const DB_VERSION = 1;
+export const EXPORT_VERSION = 1;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains("decks")) db.createObjectStore("decks", { keyPath: "id" });
+      if (!db.objectStoreNames.contains("images")) db.createObjectStore("images");
+      if (!db.objectStoreNames.contains("deckTemplates")) db.createObjectStore("deckTemplates", { keyPath: "id" });
+      if (!db.objectStoreNames.contains("meta")) db.createObjectStore("meta");
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function reqToPromise(req) {
+  return new Promise((resolve, reject) => {
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+function runTx(db, storeNames, mode, fn) {
+  return new Promise((resolve, reject) => {
+    const t = db.transaction(storeNames, mode);
+    const stores = Object.fromEntries(storeNames.map((n) => [n, t.objectStore(n)]));
+    let result;
+    Promise.resolve(fn(stores))
+      .then((r) => (result = r))
+      .catch((err) => {
+        try { t.abort(); } catch { /* ignore */ }
+        reject(err);
+      });
+    t.oncomplete = () => resolve(result);
+    t.onerror = () => reject(t.error);
+    t.onabort = () => reject(t.error || new Error("transaction aborted"));
+  });
+}
+
+export class DeckStore {
+  constructor() {
+    this._dbPromise = openDB();
+  }
+
+  async saveAll(model) {
+    const db = await this._dbPromise;
+    return runTx(db, ["decks", "meta"], "readwrite", (s) => {
+      s.decks.clear();
+      for (const d of model.decks.values()) s.decks.put(d);
+      s.meta.put(model.view, "view");
+      s.meta.put([...model.relations.values()], "relations");
+    });
+  }
+
+  async loadAll() {
+    const db = await this._dbPromise;
+    return runTx(db, ["decks", "meta"], "readonly", async (s) => {
+      const decks = await reqToPromise(s.decks.getAll());
+      const view = await reqToPromise(s.meta.get("view"));
+      const relations = await reqToPromise(s.meta.get("relations"));
+      return { decks, relations: relations || [], view: view || { panX: 0, panY: 0, scale: 1 } };
+    });
+  }
+
+  async putImage(id, blob) {
+    const db = await this._dbPromise;
+    return runTx(db, ["images"], "readwrite", (s) => s.images.put(blob, id));
+  }
+
+  async getImage(id) {
+    const db = await this._dbPromise;
+    return runTx(db, ["images"], "readonly", (s) => reqToPromise(s.images.get(id)));
+  }
+
+  /** 덱들이 쓰는 초상화 Blob을 { portraitId: Blob }으로 모은다(템플릿 저장·내보내기용 사본). */
+  async collectImages(decks) {
+    const images = {};
+    for (const deck of decks) {
+      for (const g of deck.generals) {
+        if (!g.portraitId || images[g.portraitId]) continue;
+        const blob = await this.getImage(g.portraitId);
+        if (blob) images[g.portraitId] = blob;
+      }
+    }
+    return images;
+  }
+
+  /** { portraitId: Blob } 중 아직 없는 것만 써넣는다 — 덱을 만들기 "전에" 불러야 카드가 그려지는
+   * 순간 사진을 바로 읽을 수 있다(가계도 importJSON과 같은 이유). */
+  async restoreImages(images) {
+    for (const [id, blob] of Object.entries(images || {})) {
+      if (!(await this.getImage(id))) await this.putImage(id, blob);
+    }
+  }
+
+  async listTemplates() {
+    const db = await this._dbPromise;
+    const list = await runTx(db, ["deckTemplates"], "readonly", (s) => reqToPromise(s.deckTemplates.getAll()));
+    return list.sort((a, b) => a.createdAt - b.createdAt);
+  }
+
+  async putTemplate(template) {
+    const db = await this._dbPromise;
+    return runTx(db, ["deckTemplates"], "readwrite", (s) => s.deckTemplates.put(template));
+  }
+
+  async deleteTemplate(id) {
+    const db = await this._dbPromise;
+    return runTx(db, ["deckTemplates"], "readwrite", (s) => s.deckTemplates.delete(id));
+  }
+}
+
+export async function imagesToDataURLs(images) {
+  const out = {};
+  for (const [id, blob] of Object.entries(images)) out[id] = await blobToDataURL(blob);
+  return out;
+}
+
+export async function dataURLsToImages(dataUrls) {
+  const out = {};
+  for (const [id, url] of Object.entries(dataUrls || {})) out[id] = await (await fetch(url)).blob();
+  return out;
+}
+
+function blobToDataURL(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}

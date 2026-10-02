@@ -1,0 +1,92 @@
+/**
+ * 셀렉트박스(*) 선택지 목록 — 덱 보드의 모든 셀렉트가 여기서 선택지를 가져온다.
+ *
+ * ⚠️ 속성치(statOptions)를 뺀 나머지 목록은 전부 "예시" 값이다. 실제 게임 데이터로 바꿔 넣으면 된다.
+ *
+ * - 덱에는 name이 아니라 id가 저장된다. 그래서 name은 언제든 고쳐도 기존 덱이 안 깨진다.
+ *   id를 바꾸거나 항목을 지우면, 그 값을 쓰던 덱의 셀렉트에는 "(삭제된 항목: id)"로 표시되고
+ *   값은 그대로 남는다(다시 골라주면 됨).
+ * - 목록 순서 = 셀렉트에 보이는 순서.
+ * - 장비/탈것 옵션의 opt1/opt2는 각각 "1옵 후보", "2옵 후보" 목록이다(id는 두 목록을 통틀어 겹치지 않게).
+ */
+export const CATALOG = {
+  /** 전형 */
+  formations: [
+    { id: "f-crane", name: "학익진" },
+    { id: "f-fish", name: "어린진" },
+    { id: "f-arrow", name: "봉시진" },
+    { id: "f-snake", name: "장사진" },
+  ],
+
+  /** 병종 — short는 덱 이름 오른쪽에 자동으로 붙는 병종 요약 글자(장수 1·2·3 순서로 "말•창•활"). */
+  troopTypes: [
+    { id: "t-cavalry", name: "기병", short: "말" },
+    { id: "t-spear", name: "창병", short: "창" },
+    { id: "t-archer", name: "궁병", short: "활" },
+    { id: "t-shield", name: "방패병", short: "방" },
+  ],
+
+  /** 병종 전통 — 지금은 병종과 무관하게 전체 목록이 보인다. */
+  troopTraditions: [
+    { id: "tr-elite", name: "정예 전통" },
+    { id: "tr-heavy", name: "중장 전통" },
+    { id: "tr-light", name: "경장 전통" },
+  ],
+
+  /** 병법 — 장수당 3개 */
+  arts: [
+    { id: "a-assault", name: "강습" },
+    { id: "a-guard", name: "견수" },
+    { id: "a-ambush", name: "기습" },
+    { id: "a-heal", name: "회복" },
+    { id: "a-first", name: "선제" },
+  ],
+
+  /** 장비 옵션 — 1옵에 붙을 수 있는 후보(opt1)와 2옵 후보(opt2)가 따로 있다. 덱에서는 각 옵마다
+   * 이 후보 중 추천을 개수 제한 없이 고른다(왼쪽부터 추천 순서). */
+  equipmentOptions: {
+    opt1: [
+      { id: "eo1-atk", name: "공격력" },
+      { id: "eo1-str", name: "무력" },
+      { id: "eo1-int", name: "지력" },
+      { id: "eo1-crit", name: "치명" },
+    ],
+    opt2: [
+      { id: "eo2-def", name: "방어" },
+      { id: "eo2-hp", name: "병력" },
+      { id: "eo2-dodge", name: "회피" },
+      { id: "eo2-heal", name: "회복량" },
+    ],
+  },
+
+  /** 탈것 옵션 — 장비와 같은 형식(opt1 / opt2 후보가 따로). */
+  mountOptions: {
+    opt1: [
+      { id: "mo1-speed", name: "속도" },
+      { id: "mo1-lead", name: "통솔" },
+      { id: "mo1-first", name: "선공" },
+    ],
+    opt2: [
+      { id: "mo2-dodge", name: "회피" },
+      { id: "mo2-reduce", name: "피해감소" },
+      { id: "mo2-morale", name: "사기" },
+    ],
+  },
+
+  /** 관계 템플릿 — 덱끼리 잇는 관계선의 종류. 툴바 "관계 ▾"에 이 순서대로 나온다. 여기 항목을 더
+   * 추가하면 새 관계 종류가 생긴다. arrow: 화살표(시작 덱 → 끝 덱) 여부, label/color/lineStyle은
+   * 새로 그을 때의 기본값(그은 뒤 선을 눌러 바꿀 수 있음). lineStyle: "solid" | "dashed" | "dotted". */
+  relationTemplates: [
+    { id: "counter", name: "카운터", arrow: true, label: "카운터", color: "#d64545", lineStyle: "solid" },
+    { id: "arrow", name: "화살표", arrow: true, label: "", color: null, lineStyle: "solid" },
+    { id: "line", name: "기타(선)", arrow: false, label: "", color: null, lineStyle: "dashed" },
+  ],
+
+  /** 속성치 — 이 중 하나를 고른다(목록 맨 아래 "텍스트박스"를 고르면 직접 입력 칸이 열림). */
+  statOptions: [
+    { id: "s-str", name: "무력" },
+    { id: "s-int", name: "지력" },
+    { id: "s-lead", name: "통솔" },
+    { id: "s-first", name: "선공" },
+  ],
+};
