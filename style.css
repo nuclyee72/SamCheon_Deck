@@ -763,6 +763,11 @@
 
 .ui-mode-group { gap: 2px; }
 
+/* 공개 보기(방문자) — 수정/보기 전환·💾·저장 표시를 숨긴다(보기 모드라 수정용 메뉴는 이미 숨겨짐) */
+#app[data-public] .ui-mode-group,
+#app[data-public] .io-dropdown,
+#app[data-public] .save-indicator { display: none; }
+
 /* ---------- 덱끼리 관계선 ----------
    선 모양·라벨은 가계도 style.css의 .rel-line-* 규칙을 그대로 쓴다. 덱 필드보다 위(드래그 중인 덱과
    대체 전법을 펼친 덱은 z-index로 그보다 더 위)에 그린다. */

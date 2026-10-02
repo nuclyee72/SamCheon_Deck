@@ -134,6 +134,34 @@ export class DeckStore {
   }
 }
 
+/**
+ * 공개 보기(방문자)용 저장소 — DeckStore와 같은 모양이지만 아무것도 브라우저에 남기지 않는다.
+ * 게시된 data/board.json을 메모리에만 올려서 보여주고, 방문자가 무엇을 해도 저장되지 않는다.
+ */
+export class MemoryDeckStore {
+  constructor() {
+    this.images = new Map();
+  }
+  async saveAll() {}
+  async loadAll() { return { decks: [], relations: [], view: { panX: 0, panY: 0, scale: 1 } }; }
+  async putImage(id, blob) { this.images.set(id, blob); }
+  async getImage(id) { return this.images.get(id); }
+  async collectImages(decks) {
+    const images = {};
+    for (const deck of decks) {
+      for (const pid of deckPortraitIds(deck)) if (this.images.has(pid)) images[pid] = this.images.get(pid);
+    }
+    return images;
+  }
+  async restoreImages(images) {
+    for (const [id, blob] of Object.entries(images || {})) if (!this.images.has(id)) this.images.set(id, blob);
+  }
+  async pruneImages() { return 0; }
+  async listTemplates() { return []; }
+  async putTemplate() {}
+  async deleteTemplate() {}
+}
+
 export async function imagesToDataURLs(images) {
   const out = {};
   for (const [id, blob] of Object.entries(images)) out[id] = await blobToDataURL(blob);

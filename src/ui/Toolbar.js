@@ -49,6 +49,8 @@ export class Toolbar {
           <button type="button" data-action="io-menu" title="내보내기/가져오기" aria-label="내보내기/가져오기">💾</button>
           <div class="toolbar-dropdown-menu io-menu-list">
             <button type="button" data-io="export-board">보드 전체 JSON으로 내보내기</button>
+            <button type="button" data-io="export-published" title="받은 파일을 리포지토리의 data/board.json에 덮어쓰고 push하면 게시돼요">게시용 board.json 저장</button>
+            <button type="button" data-io="load-published" title="지금 보드를 게시된 data/board.json으로 바꾸기">게시본 불러오기</button>
             <label class="file-btn">가져오기(보드 또는 덱 JSON)<input type="file" accept="application/json" data-role="import"></label>
           </div>
         </div>

@@ -5,7 +5,7 @@ import { ImageCropEditor } from "./lib/ImageCropEditor.js";
 import { uuid } from "./lib/uuid.js";
 import { findFreeRectSpot, rectCollides } from "./lib/fieldSnap.js";
 import { DeckModel, cloneDeckContent, emptyListGeneral, deckPortraitIds } from "./core/DeckModel.js";
-import { DeckStore, imagesToDataURLs, dataURLsToImages, EXPORT_VERSION } from "./core/DeckStore.js";
+import { DeckStore, MemoryDeckStore, imagesToDataURLs, dataURLsToImages, EXPORT_VERSION } from "./core/DeckStore.js";
 import { DeckRenderer, DECK_GAP } from "./view/DeckRenderer.js";
 import { RelationRenderer } from "./view/RelationRenderer.js";
 import { CATALOG } from "./catalog.js";
@@ -27,8 +27,19 @@ const relsEl = document.getElementById("rels-layer");
 const relEditorEl = document.getElementById("rel-editor");
 
 
+// ---------- 공개 보기 / 편집 ----------
+// 공개 보기(방문자): 리포지토리에 올린 data/board.json을 읽어 보기 모드로만 보여준다 — 브라우저에 아무것도
+// 저장하지 않고(MemoryDeckStore), 수정/보기 전환·💾·템플릿·관계 메뉴도 없다.
+// 편집: 주소에 ?edit를 붙이거나 내 컴퓨터(localhost)에서 열 때 — 지금까지처럼 이 브라우저(IndexedDB)에
+// 저장하며 고치고, 💾 → "게시용 board.json 저장"으로 받은 파일을 data/board.json에 덮어써 push하면 게시된다.
+// (localhost에서 방문자 화면을 미리 보려면 ?public)
+const PUBLISHED_URL = "data/board.json";
+const urlParams = new URLSearchParams(location.search);
+const IS_LOCAL = ["localhost", "127.0.0.1", ""].includes(location.hostname);
+const PUBLIC = urlParams.has("public") || (!urlParams.has("edit") && !IS_LOCAL);
+
 const model = new DeckModel();
-const store = new DeckStore();
+const store = PUBLIC ? new MemoryDeckStore() : new DeckStore();
 const undoMgr = new UndoManager(model);
 const cropEditor = new ImageCropEditor(document.getElementById("crop-modal"));
 
@@ -73,6 +84,8 @@ const toolbar = new Toolbar(toolbarEl, {
     applyTheme(isDark ? "light" : "dark");
   },
   exportBoard,
+  exportPublished,
+  loadPublishedBoard,
   import: importFile,
   viewMode: (mode) => applyViewMode(mode),
   uiMode: (mode) => applyUiMode(mode),
@@ -87,7 +100,7 @@ toolbar.setRelationTemplates(CATALOG.relationTemplates);
 const UI_MODE_KEY = "deck-ui-mode";
 let uiMode = "edit";
 function applyUiMode(mode, { remember = true } = {}) {
-  uiMode = mode === "view" ? "view" : "edit";
+  uiMode = mode === "view" || PUBLIC ? "view" : "edit";
   renderer.changeLayout(() => {
     appEl.dataset.uiMode = uiMode;
     renderer.setEditable(uiMode === "edit");
@@ -586,13 +599,47 @@ async function deleteTemplate(id) {
 }
 
 // ---------- 내보내기 / 가져오기 ----------
-async function exportBoard() {
+async function boardExportData() {
   const decks = [...model.decks.values()];
   const images = await imagesToDataURLs(await store.collectImages(decks));
-  download(`deck-board-${dateStamp()}.json`, {
+  return {
     kind: "samguk-deck-board", version: EXPORT_VERSION, exportedAt: new Date().toISOString(),
     decks, relations: [...model.relations.values()], view: model.view, images,
-  });
+  };
+}
+
+async function exportBoard() {
+  download(`deck-board-${dateStamp()}.json`, await boardExportData());
+}
+
+/** 게시용 — 리포지토리의 data/board.json에 그대로 덮어쓸 파일. 내용은 "보드 전체 내보내기"와 같다. */
+async function exportPublished() {
+  download("board.json", await boardExportData());
+}
+
+/** 게시된 data/board.json을 읽는다 — 초상화는 store에 먼저 넣어 두고 { decks, relations, view }를 돌려준다.
+ * 없거나(아직 게시 안 함) 못 읽으면 null. */
+async function fetchPublished() {
+  try {
+    const res = await fetch(PUBLISHED_URL, { cache: "no-cache" });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data.kind !== "samguk-deck-board") return null;
+    await store.restoreImages(await dataURLsToImages(data.images));
+    return { decks: data.decks || [], relations: data.relations || [], view: model.view };
+  } catch (err) {
+    console.error(err);
+    return null;
+  }
+}
+
+/** 💾 → "게시본 불러오기" — 지금 보드를 게시된 보드로 바꾼다(실행취소 가능). */
+async function loadPublishedBoard() {
+  if (!confirm("지금 보드를 게시된 보드(data/board.json)로 바꿀까요? (실행취소로 되돌릴 수 있어요)")) return;
+  const data = await fetchPublished();
+  if (!data) return alert("게시된 보드를 불러오지 못했습니다. 아직 게시하지 않았을 수 있어요.");
+  model.loadJSON(data);
+  camera.fitToContent(renderer.getBounds());
 }
 
 async function exportDeck(deck) {
@@ -705,6 +752,7 @@ async function saveNow() {
   }
 }
 model.onChange(() => {
+  if (PUBLIC) return;
   toolbar.setSaveState("저장 중…");
   clearTimeout(saveTimer);
   saveTimer = setTimeout(saveNow, 500);
@@ -759,11 +807,18 @@ document.addEventListener("keydown", (e) => {
 }
 
 async function init() {
-  const data = await store.loadAll();
+  if (PUBLIC) {
+    appEl.dataset.public = "";
+    emptyHintEl.innerHTML = "<p>아직 게시된 보드가 없어요.</p>";
+  }
+  let data = PUBLIC ? null : await store.loadAll();
+  // 공개 보기는 항상 게시본, 편집은 이 브라우저에 저장된 게 하나도 없을 때(처음 쓰는 컴퓨터) 게시본에서 시작.
+  if (PUBLIC || !data.decks.length) data = (await fetchPublished()) || data || { decks: [], relations: [] };
   model.loadJSON(data); // "reset" → renderer.renderAll()
   if (model.decks.size) camera.fitToContent(renderer.getBounds(), { animate: false });
   updateEmptyHint();
   toolbar.setSaveState("저장됨");
+  if (PUBLIC) return;
   await refreshTemplates();
   pruneUnusedImages();
 }
