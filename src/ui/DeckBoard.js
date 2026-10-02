@@ -4,7 +4,7 @@ import { setTacticOpen } from "./TacticBox.js";
 import { selectHTML, syncSelect, catalogList } from "./selects.js";
 
 /**
- * 덱 필드 하나의 DOM — 헤더(드래그 손잡이·덱 이름·전형·메뉴) + 비고 + 장수 3열.
+ * 덱 필드 하나의 DOM — 헤더(드래그 손잡이·덱 이름·메뉴) + 비고·전형 한 줄 + 장수 3열.
  *
  * 입력은 위임 리스너 하나로 처리한다: data-path가 있는 칸에서 input 이벤트가 나면
  * onInput(path, value), data-act 버튼을 누르면 onAction(act, { path, index, gi, button }).
@@ -19,11 +19,13 @@ export function createDeckBoard(deck, { onInput, onAction }) {
       <span class="deck-grip" title="잡고 끌어서 옮기기" aria-hidden="true">⠿</span>
       <input type="text" class="deck-name" data-path="name" placeholder="덱 이름">
       <span class="deck-troops" aria-label="병종 구성"></span>
-      <label class="deck-formation"><span>전형</span>${selectHTML("formations", "formation")}</label>
       <span class="deck-lock-mark" title="위치 잠김" aria-hidden="true">🔒</span>
       <button type="button" class="deck-menu-btn" data-act="menu" title="덱 메뉴" aria-label="덱 메뉴">⋯</button>
     </header>
-    <textarea class="deck-notes" data-path="notes" rows="2" placeholder="비고 / 가이드"></textarea>
+    <div class="deck-notes-row">
+      <textarea class="deck-notes" data-path="notes" rows="2" placeholder="비고 / 가이드"></textarea>
+      <label class="deck-formation"><span>전형</span>${selectHTML("formations", "formation")}</label>
+    </div>
     <div class="deck-generals"></div>
   `;
   const generalsEl = el.querySelector(".deck-generals");

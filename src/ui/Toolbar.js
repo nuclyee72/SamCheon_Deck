@@ -16,14 +16,13 @@ export class Toolbar {
         <button type="button" class="toggle" data-action="ui-mode" data-ui="view" title="수정용 버튼 없이 깔끔하게 보기">보기</button>
       </div>
       <div class="toolbar-group edit-only">
-        <button type="button" data-action="add-deck">+덱</button>
+        <div class="toolbar-dropdown template-dropdown">
+          <button type="button" data-action="template-menu" title="새 덱·리스트·저장한 템플릿 넣기">템플릿 ▾</button>
+          <div class="toolbar-dropdown-menu template-menu-list"></div>
+        </div>
         <div class="toolbar-dropdown relation-dropdown">
           <button type="button" class="toggle" data-action="relation-menu" title="덱끼리 관계선 긋기">관계 ▾</button>
           <div class="toolbar-dropdown-menu relation-menu-list"></div>
-        </div>
-        <div class="toolbar-dropdown template-dropdown">
-          <button type="button" data-action="template-menu" title="저장한 덱 템플릿 넣기">템플릿</button>
-          <div class="toolbar-dropdown-menu template-menu-list"></div>
         </div>
       </div>
       <div class="toolbar-group view-mode-group" role="group" aria-label="표시 단계">
@@ -97,9 +96,13 @@ export class Toolbar {
     });
 
     this.el.querySelector(".template-menu-list").addEventListener("click", (e) => {
+      const builtinBtn = e.target.closest("button[data-template-builtin]");
       const insertBtn = e.target.closest("button[data-template-insert]");
       const deleteBtn = e.target.closest("button[data-template-delete]");
-      if (insertBtn) {
+      if (builtinBtn) {
+        this.closeMenus();
+        this.handlers.insertBuiltinTemplate?.(builtinBtn.dataset.templateBuiltin);
+      } else if (insertBtn) {
         this.closeMenus();
         this.handlers.insertTemplate?.(insertBtn.dataset.templateInsert);
       } else if (deleteBtn) {
@@ -126,10 +129,28 @@ export class Toolbar {
     for (const dd of this.el.querySelectorAll(".toolbar-dropdown.open")) dd.classList.remove("open");
   }
 
-  /** templates: DeckStore.listTemplates() — 이름은 사용자가 입력한 값이라 textContent로 넣는다. */
+  /** templates: DeckStore.listTemplates() — 이름은 사용자가 입력한 값이라 textContent로 넣는다.
+   * 맨 위에는 항상 기본 템플릿(빈 덱 / 리스트)이 있고, 그 아래 구분선 다음에 저장한 템플릿들. */
   setTemplates(templates) {
     const menu = this.el.querySelector(".template-menu-list");
     menu.replaceChildren();
+    const builtins = document.createElement("div");
+    builtins.className = "template-menu-builtin";
+    for (const [kind, label, title] of [
+      ["deck", "🃏 덱 (장수 3명)", "화면 가운데에 빈 덱 넣기"],
+      ["list", "📋 리스트 (시즌·장수·전법)", "화면 가운데에 빈 리스트 넣기"],
+    ]) {
+      const row = document.createElement("div");
+      row.className = "template-menu-row";
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.dataset.templateBuiltin = kind;
+      btn.textContent = label;
+      btn.title = title;
+      row.append(btn);
+      builtins.append(row);
+    }
+    menu.append(builtins);
     if (!templates.length) {
       const empty = document.createElement("p");
       empty.className = "template-menu-empty";

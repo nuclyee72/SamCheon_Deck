@@ -3,10 +3,10 @@ import { DragController } from "./lib/DragController.js";
 import { UndoManager } from "./lib/UndoManager.js";
 import { ImageCropEditor } from "./lib/ImageCropEditor.js";
 import { uuid } from "./lib/uuid.js";
-import { findFreeRectSpot } from "./lib/fieldSnap.js";
-import { DeckModel, cloneDeckContent } from "./core/DeckModel.js";
+import { findFreeRectSpot, rectCollides } from "./lib/fieldSnap.js";
+import { DeckModel, cloneDeckContent, emptyListGeneral, deckPortraitIds } from "./core/DeckModel.js";
 import { DeckStore, imagesToDataURLs, dataURLsToImages, EXPORT_VERSION } from "./core/DeckStore.js";
-import { DeckRenderer } from "./view/DeckRenderer.js";
+import { DeckRenderer, DECK_GAP } from "./view/DeckRenderer.js";
 import { RelationRenderer } from "./view/RelationRenderer.js";
 import { CATALOG } from "./catalog.js";
 import { COLOR_PRESETS, LINE_STYLE_PRESETS } from "./lib/RelationshipLine.js";
@@ -26,7 +26,6 @@ const appEl = document.getElementById("app");
 const relsEl = document.getElementById("rels-layer");
 const relEditorEl = document.getElementById("rel-editor");
 
-const DECK_GAP = 40; // 새 덱/복제본을 놓을 때 옆 덱과 띄우는 간격
 
 const model = new DeckModel();
 const store = new DeckStore();
@@ -60,13 +59,8 @@ relations = new RelationRenderer({
 });
 
 const toolbar = new Toolbar(toolbarEl, {
-  addDeck: () => {
-    if (uiMode === "view") return;
-    const deck = placeDeck({});
-    renderer.setSelected(deck.id);
-    renderer.boardEls.get(deck.id)?.querySelector(".deck-name")?.focus();
-  },
   insertTemplate,
+  insertBuiltinTemplate,
   deleteTemplate,
   zoomIn: () => zoomAtCenter(1.25),
   zoomOut: () => zoomAtCenter(1 / 1.25),
@@ -236,8 +230,9 @@ function closeRelEditor() {
 
 function syncRelEditor(rel) {
   const template = CATALOG.relationTemplates.find((t) => t.id === rel.template);
-  const from = model.decks.get(rel.fromId)?.name || "이름 없는 덱";
-  const to = model.decks.get(rel.toId)?.name || "이름 없는 덱";
+  const titleOf = (id) => (model.decks.has(id) && deckTitle(model.decks.get(id))) || "이름 없는 덱";
+  const from = titleOf(rel.fromId);
+  const to = titleOf(rel.toId);
   relEditorEl.querySelector(".rel-editor-title").textContent =
     `${template?.name || (rel.type === "arrow" ? "화살표" : "관계")} · ${from} ${rel.type === "arrow" ? (rel.bidirectional ? "↔" : "→") : "—"} ${to}`;
   const label = relEditorEl.querySelector(".rel-editor-label");
@@ -308,9 +303,9 @@ function viewportCenterWorld() {
   return camera.screenToWorld(rect.left + rect.width / 2, rect.top + rect.height / 2);
 }
 
-/** content를 가진 새 덱을 (기본: 화면 가운데) 다른 덱과 안 겹치는 가장 가까운 자리에 놓는다. */
+/** content를 가진 새 덱(또는 리스트)을 (기본: 화면 가운데) 다른 덱과 안 겹치는 가장 가까운 자리에 놓는다. */
 function placeDeck(content, near = null) {
-  const { width, height } = renderer.measureBoardSize();
+  const { width, height } = renderer.measureBoardSize(content.kind === "list" ? "list" : "deck");
   let x, y;
   if (near) {
     ({ x, y } = near);
@@ -319,10 +314,36 @@ function placeDeck(content, near = null) {
     x = c.x - width / 2;
     y = c.y - height / 2;
   }
-  const spot = findFreeRectSpot(renderer.rects(), width, height, x, y, DECK_GAP);
+  const spot = findGapSpot(renderer.rects(), width, height, x, y);
   const deck = model.addDeck(content, spot);
   ensureDeckVisible(deck);
   return deck;
+}
+
+/** (x, y)에 가장 가까우면서 다른 덱과 DECK_GAP 이상 떨어진 자리 — 후보는 원하는 자리 자체와, 기존 덱의
+ * 오른쪽·왼쪽·아래·위로 정확히 DECK_GAP 띄운 자리(위/왼쪽 끝을 그 덱에 맞춤)라서 놓자마자 줄이 맞는다.
+ * 그런 자리가 하나도 없으면 겹치지만 않는 아무 빈자리. */
+function findGapSpot(rects, width, height, x, y) {
+  const g = DECK_GAP;
+  // 다른 덱을 사방으로 (간격 - 1)만큼 부풀려서 겹침 검사 — 딱 간격만큼 떨어진 자리는 통과.
+  const padded = rects.map((r) => ({ id: r.id, x: r.x - (g - 1), y: r.y - (g - 1), width: r.width + 2 * (g - 1), height: r.height + 2 * (g - 1) }));
+  const candidates = [{ x, y }];
+  for (const r of rects) {
+    candidates.push(
+      { x: r.x + r.width + g, y: r.y },
+      { x: r.x - g - width, y: r.y },
+      { x: r.x, y: r.y + r.height + g },
+      { x: r.x, y: r.y - g - height },
+    );
+  }
+  let best = null;
+  let bestDist = Infinity;
+  for (const c of candidates) {
+    if (rectCollides(padded, width, height, c.x, c.y, null)) continue;
+    const dist = Math.hypot(c.x - x, c.y - y);
+    if (dist < bestDist) { best = c; bestDist = dist; }
+  }
+  return best || findFreeRectSpot(rects, width, height, x, y, 40);
 }
 
 /** 덱이 화면 밖으로 걸쳐 있으면(빈 자리를 찾다 보니 가장자리에 놓인 경우 등) 딱 보일 만큼만 화면을
@@ -346,12 +367,13 @@ function ensureDeckVisible(deck) {
 const backgroundDrag = new DragController(viewportEl, {
   // 보기 모드에서는 덱 위에서 끌어도 팬(덱은 어차피 못 옮김) — 대체 전법 펼치기·비고 스크롤만 예외.
   filter: (e) => (!e.target.closest(".deck-board") && !e.target.closest(".rel-line")) ||
-    (uiMode === "view" && !e.target.closest(".tactic-toggle, .tactic-alts, .deck-notes")),
+    (uiMode === "view" && !e.target.closest(".tactic-toggle, .tactic-alts, .deck-notes, .list-general, .list-tactic")),
   onDragStart: () => camera.setTransforming(true),
   onDragMove: (dx, dy) => camera.pan(dx, dy),
   onDragEnd: () => camera.setTransforming(false),
   onClick: () => {
     renderer.setSelected(null);
+    renderer.setHighlight(null);
     closeDeckMenu();
     closeRelEditor();
   },
@@ -371,10 +393,19 @@ viewportEl.addEventListener("scroll", () => {
 });
 
 // ---------- 덱 필드 안의 버튼 동작 ----------
-let portraitTarget = null; // { deckId, gi } — 파일 선택창이 열려 있는 동안 어느 장수 칸인지
+let portraitTarget = null; // { deckId, path } — 파일 선택창이 열려 있는 동안 어느 초상화 칸인지
 
 function handleDeckAction(deckId, act, ctx) {
   if (act === "menu") return openDeckMenu(deckId, ctx.button);
+  // 리스트(ListBoard)의 장수/전법 칸 추가·빼기
+  if (act === "list-add") {
+    const list = model.getPath(deckId, ctx.path) || [];
+    return model.setPath(deckId, ctx.path, [...list, ctx.path === "listGenerals" ? emptyListGeneral() : ""]);
+  }
+  if (act === "list-remove") {
+    const list = model.getPath(deckId, ctx.path) || [];
+    return model.setPath(deckId, ctx.path, list.filter((_, i) => i !== ctx.index));
+  }
   if (act === "add-alt") {
     const list = model.getPath(deckId, ctx.path) || [];
     return model.setPath(deckId, ctx.path, [...list, ""]);
@@ -397,15 +428,17 @@ function handleDeckAction(deckId, act, ctx) {
     const path = `generals.${ctx.gi}.needsTally`;
     return model.setPath(deckId, path, !model.getPath(deckId, path));
   }
+  // 초상화 칸 — 덱 장수 카드는 gi로, 리스트 장수 칸은 path(listGenerals.i.portraitId)로 온다.
+  const portraitPath = ctx.path || `generals.${ctx.gi}.portraitId`;
   if (act === "pick-portrait") {
-    portraitTarget = { deckId, gi: ctx.gi };
+    portraitTarget = { deckId, path: portraitPath };
     portraitFileEl.click();
     return;
   }
-  if (act === "drop-portrait") return setPortraitFromFile(deckId, ctx.gi, ctx.file);
+  if (act === "drop-portrait") return setPortraitFromFile(deckId, portraitPath, ctx.file);
   if (act === "remove-portrait") {
     // Blob 자체는 지우지 않는다 — 복제본·템플릿·실행취소가 같은 portraitId를 가리키고 있을 수 있다.
-    return model.setPath(deckId, `generals.${ctx.gi}.portraitId`, null);
+    return model.setPath(deckId, portraitPath, null);
   }
 }
 
@@ -414,16 +447,16 @@ portraitFileEl.addEventListener("change", () => {
   portraitFileEl.value = "";
   const target = portraitTarget;
   portraitTarget = null;
-  if (file && target) setPortraitFromFile(target.deckId, target.gi, file);
+  if (file && target) setPortraitFromFile(target.deckId, target.path, file);
 });
 
-async function setPortraitFromFile(deckId, gi, file) {
+async function setPortraitFromFile(deckId, path, file) {
   const blob = await cropEditor.open(file);
   if (!blob || !model.decks.has(deckId)) return;
   const id = uuid();
   await store.putImage(id, blob);
   renderer.cachePortrait(id, blob);
-  model.setPath(deckId, `generals.${gi}.portraitId`, id);
+  model.setPath(deckId, path, id);
 }
 
 // ---------- 덱 ⋯ 메뉴 ----------
@@ -435,6 +468,7 @@ function openDeckMenu(deckId, button) {
   if (menuDeckId === deckId && !deckMenuEl.hidden) return closeDeckMenu();
   menuDeckId = deckId;
   deckMenuEl.querySelector('[data-menu="toggle-lock"]').textContent = deck.locked ? "위치 잠금 해제" : "위치 잠금";
+  deckMenuEl.querySelector('[data-menu="export-deck"]').textContent = `이 ${deck.kind === "list" ? "리스트" : "덱"} JSON으로 내보내기`;
   deckMenuEl.hidden = false;
   const r = button.getBoundingClientRect();
   const m = deckMenuEl.getBoundingClientRect();
@@ -474,12 +508,19 @@ function duplicateDeck(deck) {
   const el = renderer.boardEls.get(deck.id);
   const content = cloneDeckContent(deck);
   if (content.name) content.name = `${content.name} (복사본)`;
+  if (content.season) content.season = `${content.season} (복사본)`;
   const copy = placeDeck(content, { x: deck.x + (el?.offsetWidth || 0) + DECK_GAP, y: deck.y });
   renderer.setSelected(copy.id);
 }
 
+/** 덱 이름(리스트면 시즌) — 확인창·템플릿 이름·파일 이름에 쓴다. */
+function deckTitle(deck) {
+  return (deck.kind === "list" ? deck.season : deck.name) || "";
+}
+
 function deleteDeck(deck) {
-  const label = deck.name ? `"${deck.name}" 덱` : "이 덱";
+  const noun = deck.kind === "list" ? "리스트" : "덱";
+  const label = deckTitle(deck) ? `"${deckTitle(deck)}" ${noun}` : `이 ${noun}`;
   if (confirm(`${label}을 삭제할까요? (실행취소로 되돌릴 수 있어요)`)) model.removeDeck(deck.id);
 }
 
@@ -498,7 +539,7 @@ async function refreshTemplates() {
 
 async function saveTemplate(deck) {
   const content = cloneDeckContent(deck); // prompt 전에 떠둔다 — 누른 순간의 내용으로 저장
-  const name = prompt("템플릿 이름을 입력하세요.", deck.name || `덱 템플릿 ${templates.length + 1}`);
+  const name = prompt("템플릿 이름을 입력하세요.", deckTitle(deck) || `${deck.kind === "list" ? "리스트" : "덱"} 템플릿 ${templates.length + 1}`);
   if (name === null) return;
   try {
     // 초상화 Blob 사본도 같이 — 원본 덱을 지우거나 바꿔도 템플릿에서는 계속 보이게.
@@ -524,6 +565,15 @@ async function insertTemplate(id) {
   renderer.setSelected(deck.id);
 }
 
+/** 템플릿 메뉴 맨 위의 기본 템플릿 — "deck"(빈 덱 양식) / "list"(시즌 + 장수 목록 + 전법 목록).
+ * 놓은 뒤 제목 칸(덱 이름 / 시즌)에 바로 입력할 수 있게 포커스. */
+function insertBuiltinTemplate(kind) {
+  if (uiMode === "view" || !["deck", "list"].includes(kind)) return;
+  const deck = placeDeck({ kind });
+  renderer.setSelected(deck.id);
+  renderer.boardEls.get(deck.id)?.querySelector(".deck-name")?.focus();
+}
+
 async function deleteTemplate(id) {
   const template = templates.find((t) => t.id === id);
   if (!template || !confirm(`"${template.name}" 템플릿을 삭제할까요?`)) return;
@@ -547,7 +597,7 @@ async function exportBoard() {
 
 async function exportDeck(deck) {
   const images = await imagesToDataURLs(await store.collectImages([deck]));
-  download(`deck-${safeFileName(deck.name || "untitled")}.json`, {
+  download(`deck-${safeFileName(deckTitle(deck) || "untitled")}.json`, {
     kind: "samguk-deck", version: EXPORT_VERSION, exportedAt: new Date().toISOString(),
     deck: cloneDeckContent(deck), images,
   });
@@ -592,6 +642,50 @@ function safeFileName(s) {
   return s.replace(/[\\/:*?"<>|]+/g, "_").slice(0, 60);
 }
 
+// ---------- 장수·전법 이름 자동완성 ----------
+// 보드에 이미 있는 장수 이름 / 전법 이름을 <datalist>로 모아 입력칸에 후보로 띄운다 — 같은 장수를
+// 조금 다르게 적으면 강조(리스트에서 누르기)가 안 맞으니, 이미 쓴 이름을 골라 쓰게.
+const generalNamesEl = document.createElement("datalist");
+generalNamesEl.id = "dl-general-names";
+const tacticNamesEl = document.createElement("datalist");
+tacticNamesEl.id = "dl-tactic-names";
+document.body.append(generalNamesEl, tacticNamesEl);
+
+function refreshNameSuggestions() {
+  const generals = new Set();
+  const tactics = new Set();
+  const add = (set, v) => { const s = String(v ?? "").trim(); if (s) set.add(s); };
+  for (const d of model.decks.values()) {
+    if (d.kind === "list") {
+      d.listGenerals.forEach((g) => add(generals, g.name));
+      d.listTactics.forEach((t) => add(tactics, t));
+    } else {
+      for (const g of d.generals) {
+        add(generals, g.name);
+        for (const t of g.tactics) {
+          add(tactics, t.text);
+          t.alternatives.forEach((a) => add(tactics, a));
+        }
+      }
+    }
+  }
+  const fill = (el, set) => {
+    const values = [...set].sort((a, b) => a.localeCompare(b, "ko"));
+    // 바뀐 게 없으면 그대로 둔다(입력 중에 후보 목록이 깜빡이지 않게).
+    const sig = values.join("\n");
+    if (el.dataset.values === sig) return;
+    el.dataset.values = sig;
+    el.replaceChildren(...values.map((v) => Object.assign(document.createElement("option"), { value: v })));
+  };
+  fill(generalNamesEl, generals);
+  fill(tacticNamesEl, tactics);
+}
+let suggestTimer = null;
+model.onChange(() => {
+  clearTimeout(suggestTimer);
+  suggestTimer = setTimeout(refreshNameSuggestions, 300);
+});
+
 // ---------- 자동저장 / 빈 화면 안내 ----------
 function updateEmptyHint() {
   emptyHintEl.style.display = model.decks.size ? "none" : "flex";
@@ -628,6 +722,7 @@ function isTyping(e) {
 
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
+    renderer.setHighlight(null);
     exitConnect();
     closeRelEditor();
     closeAllTactics();
@@ -669,7 +764,26 @@ async function init() {
   if (model.decks.size) camera.fitToContent(renderer.getBounds(), { animate: false });
   updateEmptyHint();
   toolbar.setSaveState("저장됨");
-  refreshTemplates();
+  await refreshTemplates();
+  pruneUnusedImages();
+}
+
+/** 보드의 덱·리스트도, 저장한 템플릿도 안 쓰는 초상화 Blob을 IndexedDB에서 지운다. 초상화를 지우거나
+ * 바꿔도 Blob은 남겨 두는데(실행취소·복제본이 같은 id를 가리킬 수 있어서) 그게 계속 쌓이지 않게 —
+ * 실행취소 기록이 비어 있는 시작 직후에만 돈다. */
+async function pruneUnusedImages() {
+  try {
+    const keep = new Set();
+    for (const d of model.decks.values()) deckPortraitIds(d).forEach((id) => keep.add(id));
+    for (const t of templates) {
+      Object.keys(t.images || {}).forEach((id) => keep.add(id));
+      if (t.deck) deckPortraitIds(t.deck).forEach((id) => keep.add(id));
+    }
+    const removed = await store.pruneImages(keep);
+    if (removed) console.info(`안 쓰는 초상화 ${removed}개를 정리했습니다.`);
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 init();

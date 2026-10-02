@@ -25,7 +25,7 @@
 
 /* ---------- 보기 모드(#decks-layer[data-view]) ----------
    많이(full) = 전부, 보통(normal) = 장수·병종/전통·전법(+비고), 적게(compact) = 장수(초상화·이름·병부)만.
-   헤더(덱 이름·전형·메뉴)는 항상 보인다. 덱 폭은 그대로라 옆 덱과의 배치는 안 흐트러진다. */
+   헤더(덱 이름·메뉴)와 전형은 항상 보인다(적게에서는 비고만 숨고 전형은 그 줄 오른쪽에 남음). 덱 폭은 그대로라 옆 덱과의 배치는 안 흐트러진다. */
 #decks-layer[data-view="normal"] .general-section:not([data-section="tactics"]) { display: none; }
 #decks-layer[data-view="compact"] .general-section,
 #decks-layer[data-view="compact"] .troop-row,
@@ -90,8 +90,8 @@
 .deck-board select.dup { border-color: var(--danger); }
 
 /* 헤더 = 드래그 손잡이(입력칸·버튼 위에서는 드래그 안 됨) */
-/* 헤더 한 줄: [⠿ 덱 이름 병종요약 …… 전형 ⋯] — 전형은 "전형" 글자를 셀렉트 위에 작게 얹어서 폭을
-   셀렉트(90px)만큼만 쓴다. 덱 이름이 아주 길면 이름 칸이 줄어든다(나머지는 칸 안에서 스크롤). */
+/* 헤더 한 줄: [⠿ 덱 이름 병종요약 …… ⋯] — 덱 이름이 아주 길면 이름 칸이 줄어든다(나머지는 칸
+   안에서 스크롤). */
 .deck-header {
   display: flex;
   align-items: center;
@@ -126,10 +126,11 @@
   border-color: transparent;
 }
 
-/* 병종 요약(말•창•활) */
+/* 병종 요약(말•창•활) — 덱 이름과 같은 크기 */
 .deck-troops {
   flex: none;
-  font-size: 28px;
+  font-size: 40px;
+  line-height: 1.15;
   font-weight: 700;
   color: var(--accent);
   letter-spacing: 0.02em;
@@ -145,21 +146,24 @@
   flex: none;
   flex-direction: column;
   align-items: flex-start;
-  margin-left: auto; /* 이름·요약은 왼쪽, 전형·메뉴는 오른쪽 */
+  margin-left: auto; /* 비고는 왼쪽, 전형은 오른쪽 끝 */
   width: auto;
   color: var(--muted);
   white-space: nowrap;
 }
 
-.deck-lock-mark { display: none; font-size: 14px; }
+.deck-lock-mark { display: none; font-size: 14px; margin-left: auto; }
 .deck-board.locked .deck-lock-mark { display: inline; }
-/* 전형 — 제목 아래 작게(폭 90px, 글자 11px) */
+.deck-board.locked .deck-menu-btn { margin-left: 0; }
+/* 전형 — 비고 줄 오른쪽 끝에 작게("전형" 글자를 셀렉트 위에 얹어 폭은 셀렉트 90px만큼) */
 .deck-formation { font-size: 10.5px; gap: 1px; line-height: 1.2; }
 .deck-formation > span { padding-left: 2px; }
 .deck-board .deck-formation select { width: 90px; flex: none; font-size: 11px; padding: 2px 2px 2px 5px; border-radius: 6px; }
 
+/* 이름·요약은 왼쪽, (🔒)⋯는 오른쪽 끝 — 잠겼으면 🔒가 밀고 ⋯는 그 바로 옆에 붙는다 */
 .deck-menu-btn {
   flex: none;
+  margin-left: auto;
   border: 1px solid transparent;
   background: none;
   color: var(--muted);
@@ -171,7 +175,15 @@
 }
 .deck-menu-btn:hover { background: var(--surface); border-color: var(--border); color: var(--text); }
 
+/* 비고/가이드 + 전형 한 줄 — 전형 셀렉트 아래쪽을 비고 칸 아래쪽에 맞춘다 */
+.deck-notes-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
 .deck-board .deck-notes {
+  flex: 1 1 auto;
   resize: none;
   height: 52px; /* 고정 높이(넘치면 스크롤) — 덱 필드 크기가 내용에 따라 변하지 않게 */
   line-height: 1.45;
@@ -211,7 +223,7 @@
 }
 .general-top .portrait { align-self: center; }
 
-/* 초상화 — 원형 틀을 카드 폭에 맞춰 크게, 사진/기본 아바타가 원을 꽉 채운다. */
+/* 초상화 — 모서리 둥근 사각형 틀을 카드 폭에 맞춰 크게, 사진/기본 아바타가 틀을 꽉 채운다. */
 .portrait {
   position: relative;
   flex: none;
@@ -224,7 +236,7 @@
   height: 100%;
   padding: 0;
   border: 1px dashed var(--border);
-  border-radius: 50%;
+  border-radius: 14px;
   background: var(--surface);
   overflow: hidden;
   cursor: pointer;
@@ -318,6 +330,14 @@
   font-size: 11.5px;
   font-weight: 600;
   color: var(--muted);
+}
+/* 전법·장비·속성치 위 가는 가로선 — 장비 섹션은 display:contents라 섹션 대신 제목(h4)에 긋는다.
+   subgrid라 세 장수 카드의 선이 같은 높이에 맞는다. */
+.general-section[data-section="tactics"] > h4,
+.general-section[data-section="equipmentOptions"] > h4,
+.general-section[data-section="stats"] > h4 {
+  border-top: 1px solid var(--border);
+  padding-top: 6px;
 }
 
 /* 한 줄에 셀렉트 3개(병법) — 칸이 좁아 글자·여백을 줄인다. 잘린 이름은
@@ -420,22 +440,31 @@
 .tactic-list {
   display: flex;
   flex-direction: column;
-  gap: 15px; /* ▼ 마크가 입력칸 아래 테두리에 걸쳐 있어서 다음 칸과 안 붙게 */
-  padding-bottom: 6px;
+  gap: 6px;
 }
 
-.tactic { position: relative; }
+/* 한 줄: [입력칸 ☆필수][▶] — ▶를 누르면 대체 전법 목록이 ▶ 오른쪽에 뜬다 */
+.tactic {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: 3px;
+}
+.tactic-field { position: relative; flex: 1; min-width: 0; }
 
-.deck-board .tactic-input { padding-bottom: 7px; padding-right: 28px; }
+.deck-board .tactic-input { padding-right: 52px; }
 
-/* 필수 전법 ★ — 입력칸 오른쪽 끝. 꺼져 있으면 흐린 ☆, 켜면 금색 ★ + 입력칸 테두리도 금색. */
+/* 필수 전법 "★ 필수" — 입력칸 오른쪽 끝(전법 2·3만). 꺼져 있으면 흐린 ☆, 켜면 금색 ★ + 입력칸 테두리도 금색. */
 .tactic-star {
   position: absolute;
-  top: 3px;
+  top: 50%;
+  transform: translateY(-50%);
   right: 4px;
-  width: 24px;
   height: 24px;
-  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0 3px;
   border: none;
   border-radius: 6px;
   background: none;
@@ -445,29 +474,31 @@
   cursor: pointer;
   opacity: 0.45;
 }
+.tactic-star-label { font-size: 11px; font-weight: 600; }
 .tactic-star:hover { opacity: 1; color: var(--tally); }
 .tactic.required .tactic-star { opacity: 1; color: var(--tally); }
 .deck-board .tactic.required .tactic-input { border-color: var(--tally); }
 
-/* 입력칸 아래쪽 가운데 ▼(대체 전법이 있으면 개수도) */
+/* 전법 1 — ☆ 없이 테두리만 노란색(필수 전법과 무관) */
+.deck-board .tactic.primary .tactic-input { border-color: var(--tally); padding-right: 8px; }
+
+/* 입력칸 오른쪽 옆 ▶(대체 전법이 있으면 개수도) */
 .tactic-toggle {
-  position: absolute;
-  left: 50%;
-  bottom: -9px;
-  transform: translateX(-50%);
+  flex: none;
+  min-width: 18px;
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  justify-content: center;
+  gap: 1px;
   font: inherit;
-  font-size: 9px;
+  font-size: 8px;
   line-height: 1;
-  padding: 2px 7px;
-  border-radius: 9px;
+  padding: 0 3px;
+  border-radius: 7px;
   border: 1px solid var(--border);
   background: var(--panel-bg);
   color: var(--muted);
   cursor: pointer;
-  z-index: 1;
 }
 .tactic-toggle:hover { color: var(--accent); border-color: var(--accent); }
 .tactic.has-alts .tactic-toggle { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
@@ -475,13 +506,13 @@
 .tactic-toggle-count:empty { display: none; }
 .tactic.open .tactic-toggle { color: #fff; background: var(--accent); border-color: var(--accent); }
 
-/* 펼친 대체 전법 목록 — 아래로 "떠오르는" 오버레이(덱 필드 크기 안 바뀜) */
+/* 펼친 대체 전법 목록 — ▶ 오른쪽에 위쪽을 맞춰 "떠오르는" 오버레이(덱 필드 크기 안 바뀜) */
 .tactic-alts {
   display: none;
   position: absolute;
-  top: calc(100% + 12px);
-  left: 5%;
-  width: 90%;
+  top: 0;
+  left: calc(100% + 6px);
+  width: 170px;
   z-index: 5;
   flex-direction: column;
   gap: 5px;
@@ -539,6 +570,107 @@
 }
 .tactic-alt-add:hover { color: var(--accent); border-color: var(--accent); }
 
+/* ---------- 리스트 템플릿(ListBoard) ----------
+   [⠿ 시즌(덱 이름 크기) …… ⋯] / ─ 장수 목록(한 줄 6칸, 맨 끝 +) / ─ 전법 목록(한 줄 6칸, 맨 끝 +) */
+.list-section {
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+.list-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.list-item { position: relative; min-width: 0; }
+
+.list-general {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 4px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  cursor: pointer;
+}
+.list-general .portrait { width: 100%; height: auto; aspect-ratio: 1; }
+.list-general .portrait-btn { border-radius: 10px; }
+.deck-board .list-general-name {
+  font-size: 11.5px;
+  font-weight: 700;
+  text-align: center;
+  padding: 3px 2px;
+}
+.deck-board .list-tactic-name {
+  font-size: 11.5px;
+  padding: 5px 6px;
+}
+
+/* 칸 빼기 × — 마우스를 올리면 칸 오른쪽 위에 */
+.list-item-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  display: none;
+  z-index: 1;
+}
+.list-item:hover .list-item-remove { display: block; }
+.list-item-remove:hover { color: var(--danger); border-color: var(--danger); }
+
+/* 맨 끝 + 칸 */
+.list-add {
+  min-height: 30px;
+  border: 1px dashed var(--border);
+  border-radius: 9px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 16px;
+  cursor: pointer;
+}
+.list-add:hover { color: var(--accent); border-color: var(--accent); }
+
+/* 같은 장수/전법 강조 — 리스트의 장수·전법 칸을 누르면 보드 전체(덱·다른 리스트)에서 이름이 같은 칸.
+   전법은 대체 전법에만 있으면 ▶와 (펼쳤을 때) 그 대체 전법 줄을 강조한다. */
+.general-card.name-hl,
+.list-general.name-hl {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent), 0 2px 14px var(--accent-glow);
+  background: var(--accent-soft);
+}
+.deck-board .tactic.name-hl .tactic-input,
+.deck-board .list-tactic.name-hl .list-tactic-name,
+.deck-board .tactic-alt-row.name-hl .tactic-alt-input {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent), 0 2px 10px var(--accent-glow);
+  background: var(--accent-soft);
+}
+.tactic.alt-hl .tactic-toggle { box-shadow: 0 0 0 2px var(--accent), 0 2px 10px var(--accent-glow); }
+.list-tactic { cursor: pointer; }
+
+/* 이름 자동완성(datalist) 입력칸에 크롬이 띄우는 ▼ 표시는 숨긴다 — 전법 칸의 "☆ 필수"와 겹친다.
+   타이핑하면 후보는 그대로 뜬다. */
+.deck-board input[list]::-webkit-calendar-picker-indicator { display: none !important; }
+
+/* 다크 모드에서는 기본 아바타(밝은 회색 그림)를 어둡게 — 사진을 넣은 칸은 그대로 */
+:root[data-theme="dark"] .portrait:not(.has-image) .portrait-img { filter: brightness(0.42); }
+
+/* 템플릿 메뉴 맨 위 기본 템플릿(리스트) — 아래 저장한 템플릿들과 구분선 */
+.template-menu-builtin { border-bottom: 1px solid var(--border); margin-bottom: 2px; padding-bottom: 2px; }
+.template-menu-builtin .template-menu-row + .template-menu-row { margin-top: 1px; }
+#toolbar .template-menu-builtin button { flex: 1; font-weight: 600; }
+
 /* ---------- 덱 ⋯ 메뉴(화면 고정 위치) ---------- */
 
 .deck-menu {
@@ -571,7 +703,7 @@
 .deck-menu button.danger:hover { background: var(--surface); }
 
 /* ---------- 보기 모드(#app[data-ui-mode="view"]) ----------
-   수정용 UI를 숨기고, 입력칸·셀렉트는 그냥 글자가 든 박스로. 병부·필수(★)는 켜진 것만, 대체 전법 ▼는
+   수정용 UI를 숨기고, 입력칸·셀렉트는 그냥 글자가 든 박스로. 병부·필수(★)는 켜진 것만, 대체 전법 ▶는
    대체 전법이 있는 전법에만 보인다(펼쳐 보기는 됨, 추가/삭제는 없음). */
 #app[data-ui-mode="view"] #toolbar .edit-only,
 #app[data-ui-mode="view"] .deck-grip,
@@ -585,12 +717,15 @@
 #app[data-ui-mode="view"] .tally-badge:not(.on),
 #app[data-ui-mode="view"] .tactic:not(.required) .tactic-star,
 #app[data-ui-mode="view"] .tactic:not(.has-alts) .tactic-toggle,
+#app[data-ui-mode="view"] .list-add,
+#app[data-ui-mode="view"] .list-item-remove,
 #app[data-ui-mode="view"] .stat-choice.is-text select { display: none; }
 
 #app[data-ui-mode="view"] .deck-header,
 #app[data-ui-mode="view"] .deck-board { cursor: grab; }
 #app[data-ui-mode="view"] .tally-badge,
 #app[data-ui-mode="view"] .tactic-star,
+#app[data-ui-mode="view"] .list-general .portrait-btn,
 #app[data-ui-mode="view"] .portrait-btn { pointer-events: none; }
 #app[data-ui-mode="view"] .deck-board.selected { border-color: var(--border); box-shadow: 0 4px 18px var(--panel-shadow); }
 
@@ -616,7 +751,7 @@
 #app[data-ui-mode="view"] .deck-board select.empty { color: transparent; }
 
 #app[data-ui-mode="view"] .deck-board .tactic-input { padding-right: 8px; }
-#app[data-ui-mode="view"] .tactic.required .tactic-input { padding-right: 28px; }
+#app[data-ui-mode="view"] .tactic.required .tactic-input { padding-right: 52px; }
 #app[data-ui-mode="view"] .stat-choice.is-text { grid-template-columns: 1fr; }
 #app[data-ui-mode="view"] .gear-chip { padding-right: 8px; }
 #app[data-ui-mode="view"] .gear-chips:not(:has(.gear-chip))::after {

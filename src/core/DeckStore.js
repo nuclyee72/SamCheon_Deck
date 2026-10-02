@@ -5,6 +5,8 @@
  * - deckTemplates : "템플릿으로 저장"한 덱 — 보드 데이터와 별개라 내보내기·실행취소에 안 섞인다
  * - meta          : 뷰 상태(pan/zoom), 덱끼리의 관계선 목록("relations")
  */
+import { deckPortraitIds } from "./DeckModel.js";
+
 const DB_NAME = "samgukDeckDB";
 const DB_VERSION = 1;
 export const EXPORT_VERSION = 1;
@@ -83,14 +85,25 @@ export class DeckStore {
     return runTx(db, ["images"], "readonly", (s) => reqToPromise(s.images.get(id)));
   }
 
+  /** keepIds(Set)에 없는 초상화 Blob을 지운다. 지운 개수를 돌려준다. */
+  async pruneImages(keepIds) {
+    const db = await this._dbPromise;
+    return runTx(db, ["images"], "readwrite", async (s) => {
+      const keys = await reqToPromise(s.images.getAllKeys());
+      const stale = keys.filter((k) => !keepIds.has(k));
+      for (const k of stale) s.images.delete(k);
+      return stale.length;
+    });
+  }
+
   /** 덱들이 쓰는 초상화 Blob을 { portraitId: Blob }으로 모은다(템플릿 저장·내보내기용 사본). */
   async collectImages(decks) {
     const images = {};
     for (const deck of decks) {
-      for (const g of deck.generals) {
-        if (!g.portraitId || images[g.portraitId]) continue;
-        const blob = await this.getImage(g.portraitId);
-        if (blob) images[g.portraitId] = blob;
+      for (const pid of deckPortraitIds(deck)) {
+        if (images[pid]) continue;
+        const blob = await this.getImage(pid);
+        if (blob) images[pid] = blob;
       }
     }
     return images;

@@ -27,9 +27,47 @@ export function emptyGeneral() {
   };
 }
 
+/** 보드 위 필드 종류 — "deck" = 덱 양식(장수 3명), "list" = 리스트 템플릿(시즌 제목 + 장수 목록 +
+ * 전법 목록, 개수 제한 없음). 둘 다 model.decks에 같이 들어 있어서 드래그·스냅·관계선·⋯ 메뉴·
+ * 실행취소·저장을 그대로 같이 쓴다. kind가 없는 예전 데이터는 덱. */
+export const DECK_KINDS = ["deck", "list"];
+
+/** 리스트의 장수 한 칸 — 이름이 같으면 덱·다른 리스트의 장수와 같은 장수로 본다(하이라이트). */
+export const emptyListGeneral = () => ({ name: "", portraitId: null });
+
+/** 덱(또는 리스트)이 쓰는 초상화 id들 — 이미지 모으기·다시 그리기에 쓴다. */
+export function deckPortraitIds(deck) {
+  const gens = deck.kind === "list" ? deck.listGenerals : deck.generals;
+  return (gens || []).map((g) => g.portraitId).filter(Boolean);
+}
+
+/** 장수 이름 비교용 — 앞뒤 공백·대소문자 차이는 같은 이름으로 본다. 빈 이름은 ""(아무것과도 안 맞음). */
+export function generalKey(name) {
+  return String(name ?? "").trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+function normalizeList(deck) {
+  return {
+    id: deck.id || uuid(),
+    kind: "list",
+    x: deck.x ?? 0,
+    y: deck.y ?? 0,
+    locked: !!deck.locked,
+    season: deck.season || "",
+    listGenerals: (Array.isArray(deck.listGenerals) ? deck.listGenerals : []).map((g) => ({
+      name: g?.name || "",
+      portraitId: g?.portraitId ?? null,
+    })),
+    listTactics: (Array.isArray(deck.listTactics) ? deck.listTactics : []).map((t) => (typeof t === "string" ? t : "")),
+    createdAt: deck.createdAt || Date.now(),
+    updatedAt: deck.updatedAt || Date.now(),
+  };
+}
+
 /** 저장된(또는 가져온) 덱을 지금 양식에 맞춘다 — 빠진 칸은 채우고, 개수는 양식대로 맞춘다.
  * 나중에 양식이 바뀌어도(항목 추가 등) 예전 덱을 그대로 불러올 수 있게 하는 안전장치. */
 export function normalizeDeck(deck) {
+  if (deck.kind === "list") return normalizeList(deck);
   // 아는 항목만 골라 담는다 — 예전 양식에만 있던 값(장비/탈것 단일 선택, 속성치 숫자 등)은 버린다.
   const generals = Array.from({ length: GENERAL_COUNT }, (_, i) => {
     const src = deck.generals?.[i] || {};
@@ -54,6 +92,7 @@ export function normalizeDeck(deck) {
   });
   return {
     id: deck.id || uuid(),
+    kind: "deck",
     x: deck.x ?? 0,
     y: deck.y ?? 0,
     locked: !!deck.locked,

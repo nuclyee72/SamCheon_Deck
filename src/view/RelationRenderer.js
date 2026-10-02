@@ -112,11 +112,13 @@ function styleLine(g, rel) {
   g.querySelector(".rel-line-label").style.fill = rel.color || "";
 }
 
-/** 두 사각형의 중심을 잇는 선(offset만큼 수직으로 평행이동)을 각 사각형 테두리 밖에서 시작·끝나게
- * 자른다. 두 덱이 겹쳐 있으면 그냥 중심끼리 잇는다. */
+/** 두 덱의 기준점(가로 가운데, 장수 초상화 높이 — DeckRenderer.rects의 anchorY)을 잇는 선(offset만큼
+ * 수직으로 평행이동)을 각 사각형 테두리 밖에서 시작·끝나게 자른다. 기준점이 덱 전체 높이가 아니라
+ * 초상화를 따라가서, 표시 단계를 바꿔 아래쪽 칸이 접히고 펴져도 선은 초상화를 가리킨 채 그대로다.
+ * 두 덱이 겹쳐 있으면 그냥 기준점끼리 잇는다. */
 function edgeToEdge(a, b, offset) {
-  const ca = { x: a.x + a.width / 2, y: a.y + a.height / 2 };
-  const cb = { x: b.x + b.width / 2, y: b.y + b.height / 2 };
+  const ca = { x: a.x + a.width / 2, y: a.y + a.anchorY };
+  const cb = { x: b.x + b.width / 2, y: b.y + b.anchorY };
   const len = Math.hypot(cb.x - ca.x, cb.y - ca.y) || 1;
   const d = { x: (cb.x - ca.x) / len, y: (cb.y - ca.y) / len };
   const n = { x: -d.y, y: d.x };

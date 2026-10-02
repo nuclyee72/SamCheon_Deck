@@ -1,10 +1,14 @@
 import { DragController } from "../lib/DragController.js";
 import { rectCollides, computeRectSnap } from "../lib/fieldSnap.js";
 import { createDeckBoard, syncDeckBoard, positionDeckBoard, closeAllTactics, setBoardEditable } from "../ui/DeckBoard.js";
+import { createListBoard, syncListBoard } from "../ui/ListBoard.js";
+import { deckPortraitIds, generalKey } from "../core/DeckModel.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const SNAP_THRESHOLD_PX = 14; // 가계도 TreeRenderer와 같은 화면 기준 스냅 거리
-const DECK_GAP = 40; // 정렬선 외에 "옆 덱에서 이만큼 띄운 자리"에도 스냅(나란히 늘어놓기 편하게)
+// 정렬선 외에 "옆 덱에서 이만큼 띄운 자리"에도 스냅(나란히 늘어놓기 편하게). 사이에 관계선·라벨이
+// 들어갈 자리가 있게 넉넉히 — 새 덱/복제본을 놓을 때(main.js)도 같은 간격을 쓴다.
+export const DECK_GAP = 300;
 
 /**
  * DeckModel → DOM 동기화 + 덱 필드 드래그(헤더로만)·정렬 스냅·겹침 방지·휴지통 삭제.
@@ -30,8 +34,43 @@ export class DeckRenderer {
     this.selectedId = null;
     this._drag = null;
     this.editable = true; // false = 보기 모드(입력·드래그·버튼 동작 전부 막음)
+    // 리스트에서 누른 장수/전법 — { type: "general" | "tactic", key: generalKey(이름) } | null.
+    // 같은 이름의 장수 칸 / 전법 칸을 보드 전체에서 강조한다.
+    this.highlight = null;
 
-    model.onChange((type, payload) => this._handle(type, payload));
+    // 표시 단계·수정/보기 전환마다 "그 화면에서의 덱 y 위치"를 기억해 둔다(키: _layoutKey()) — 많이로
+    // 바꿔 밀려 내려간 덱이 적게로 돌아오면 원래 자리로 돌아가게. 사용자가 덱을 옮기거나 더하거나
+    // 빼면(전환 때문이 아닌 위치 변화) 기억은 전부 버린다 — 그 뒤로는 지금 자리가 기준.
+    this._layoutMemo = new Map(); // layoutKey -> Map(deckId -> y)
+    this._layoutBusy = false; // 전환 때문에 덱을 옮기는 중(이때의 위치 변화는 기억을 안 버림)
+    this._posSeen = new Map(); // deckId -> "x,y" — 마지막으로 본 위치(위치가 바뀐 update인지 가리기용)
+
+    model.onChange((type, payload) => {
+      this._trackLayout(type, payload);
+      this._handle(type, payload);
+    });
+  }
+
+  _trackLayout(type, payload) {
+    const posKey = (d) => `${d.x},${d.y}`;
+    if (type === "reset") {
+      this._layoutMemo.clear();
+      this._posSeen = new Map([...this.model.decks.values()].map((d) => [d.id, posKey(d)]));
+      return;
+    }
+    if (type === "deck:remove") {
+      this._posSeen.delete(payload);
+      if (!this._layoutBusy) this._layoutMemo.clear();
+      return;
+    }
+    if (type !== "deck:add" && type !== "deck:update") return;
+    const moved = this._posSeen.get(payload.id) !== posKey(payload);
+    this._posSeen.set(payload.id, posKey(payload));
+    if (moved && !this._layoutBusy) this._layoutMemo.clear();
+  }
+
+  _layoutKey() {
+    return `${this.decksEl.dataset.view}|${this.editable ? "edit" : "view"}`;
   }
 
   _handle(type, payload) {
@@ -48,10 +87,12 @@ export class DeckRenderer {
 
   _add(deck) {
     // 보기 모드에서는 입력/버튼 동작을 여기서 한 번 더 막는다(읽기 전용·숨김은 화면에서만 막는 것이라).
-    const el = createDeckBoard(deck, {
+    const handlers = {
       onInput: (path, value) => this.editable && this.onInput(deck.id, path, value),
       onAction: (act, ctx) => this.editable && this.onAction(deck.id, act, ctx),
-    });
+      onHighlight: (type, name, opts) => this.toggleHighlight(type, name, opts),
+    };
+    const el = deck.kind === "list" ? createListBoard(deck, handlers) : createDeckBoard(deck, handlers);
     positionDeckBoard(el, deck);
     this.decksEl.append(el);
     this.boardEls.set(deck.id, el);
@@ -84,12 +125,28 @@ export class DeckRenderer {
     if (!editable) this.setSelected(null);
   }
 
-  /** 덱 높이를 바꿀 수 있는 화면 변경(fn)을 적용한다 — 그 결과 길어진 덱이 아래 덱과 겹치면 밀어낸다. */
+  /** 덱 높이를 바꿀 수 있는 화면 변경(fn)을 적용한다 — 그 결과 길어진 덱이 아래 덱과 겹치면 밀어낸다.
+   * 단, 이 화면(표시 단계·수정/보기)을 전에 본 적이 있고 그 뒤로 덱을 옮기지 않았으면, 밀어내는 대신
+   * 그때의 자리로 되돌린다 — 그래야 적게→많이→적게처럼 왔다 갔다 해도 배치가 그대로다. */
   changeLayout(fn) {
+    const before = this._layoutKey();
     const oldHeights = new Map(this.rects().map((r) => [r.id, r.height]));
     closeAllTactics();
+    this._layoutMemo.set(before, new Map([...this.model.decks.values()].map((d) => [d.id, d.y])));
     fn();
-    this._resolveGrowth(oldHeights);
+    const after = this._layoutKey();
+    const memo = after !== before ? this._layoutMemo.get(after) : null;
+    const decks = [...this.model.decks.values()];
+    this._layoutBusy = true;
+    try {
+      if (memo && memo.size === decks.length && decks.every((d) => memo.has(d.id))) {
+        for (const d of decks) if (d.y !== memo.get(d.id)) this.model.updateDeck(d.id, { y: memo.get(d.id) });
+      } else {
+        this._resolveGrowth(oldHeights);
+      }
+    } finally {
+      this._layoutBusy = false;
+    }
   }
 
   /** 덱 높이가 늘어(장비/탈것 칩 줄바꿈, 보기 모드 변경 등) 아래 덱과 겹치게 되면 그 덱을 원래
@@ -128,8 +185,57 @@ export class DeckRenderer {
 
   _sync(deck) {
     const el = this.boardEls.get(deck.id);
-    syncDeckBoard(el, deck, (pid) => this._portraitUrl(pid, deck.id));
+    const portraitUrlFor = (pid) => this._portraitUrl(pid, deck.id);
+    if (deck.kind === "list") syncListBoard(el, deck, portraitUrlFor);
+    else syncDeckBoard(el, deck, portraitUrlFor);
     setBoardEditable(el, this.editable);
+    this._applyHighlight(el, deck);
+  }
+
+  // ---------- 같은 장수/전법 강조(리스트의 장수·전법 칸을 누르면) ----------
+
+  /** 리스트의 장수/전법 칸을 누를 때 — 그 이름으로 강조한다. 이미 같은 것이 강조돼 있으면 끈다(단,
+   * 이름을 고치려고 입력칸을 누른 경우는 끄지 않음). 빈 이름이면 강조를 끈다. */
+  toggleHighlight(type, name, { typing = false } = {}) {
+    const key = generalKey(name);
+    const same = this.highlight?.type === type && this.highlight.key === key;
+    this.setHighlight(key && (!same || typing) ? { type, key } : null);
+  }
+
+  /** hl: { type: "general" | "tactic", key } 또는 null(끄기). */
+  setHighlight(hl) {
+    this.highlight = hl?.key ? hl : null;
+    for (const [id, el] of this.boardEls) {
+      const deck = this.model.decks.get(id);
+      if (deck) this._applyHighlight(el, deck);
+    }
+  }
+
+  _applyHighlight(el, deck) {
+    const hl = this.highlight;
+    const match = (type, name) => !!hl && hl.type === type && generalKey(name) === hl.key;
+    if (deck.kind === "list") {
+      el.querySelectorAll(".list-general").forEach((item, i) => item.classList.toggle("name-hl", match("general", deck.listGenerals[i]?.name)));
+      el.querySelectorAll(".list-tactic").forEach((item, i) => item.classList.toggle("name-hl", match("tactic", deck.listTactics[i])));
+      return;
+    }
+    el.querySelectorAll(".general-card").forEach((card, gi) => {
+      const g = deck.generals[gi];
+      card.classList.toggle("name-hl", match("general", g?.name));
+      // 전법 칸 — 전법 자체가 같으면 그 칸을, 대체 전법 중에 같은 게 있으면 ▶와 그 대체 전법 줄을 강조.
+      card.querySelectorAll(".tactic").forEach((tEl, ti) => {
+        const t = g?.tactics[ti];
+        tEl.classList.toggle("name-hl", match("tactic", t?.text));
+        const altRows = tEl.querySelectorAll(".tactic-alt-row");
+        let anyAlt = false;
+        (t?.alternatives || []).forEach((alt, ai) => {
+          const hit = match("tactic", alt);
+          anyAlt ||= hit;
+          altRows[ai]?.classList.toggle("name-hl", hit);
+        });
+        tEl.classList.toggle("alt-hl", anyAlt);
+      });
+    });
   }
 
   /** 캐시에 있으면 바로, 없으면 IndexedDB에서 읽어 온 뒤 그 덱을 다시 그린다. */
@@ -143,7 +249,7 @@ export class DeckRenderer {
         if (!blob) return;
         this.portraitUrls.set(portraitId, URL.createObjectURL(blob));
         for (const d of this.model.decks.values()) {
-          if (d.generals.some((g) => g.portraitId === portraitId)) this._sync(d);
+          if (deckPortraitIds(d).includes(portraitId)) this._sync(d);
         }
       });
     }
@@ -163,12 +269,18 @@ export class DeckRenderer {
     this.onSelect?.(id);
   }
 
-  /** 겹침 판정·스냅·전체보기에 쓰는 사각형들(크기는 DOM 실측, 줌과 무관한 CSS px). */
+  /** 겹침 판정·스냅·전체보기에 쓰는 사각형들(크기는 DOM 실측, 줌과 무관한 CSS px).
+   * anchorY = 덱 위쪽에서 장수 초상화 세로 가운데까지 — 관계선 기준점. 초상화는 모든 표시 단계에서
+   * 보이고 그 위의 칸(헤더·비고)만 영향을 줘서, 많이/보통에서는 같고 적게에서만 비고 높이만큼 올라간다. */
   rects() {
     const out = [];
     for (const deck of this.model.decks.values()) {
       const el = this.boardEls.get(deck.id);
-      if (el) out.push({ id: deck.id, x: deck.x, y: deck.y, width: el.offsetWidth, height: el.offsetHeight });
+      if (!el) continue;
+      // 리스트에는 장수 카드가 없으니 헤더(시즌 제목) 높이에 건다.
+      const anchorEl = el.querySelector(".general-card .portrait") || el.querySelector(".deck-header");
+      const anchorY = anchorEl ? offsetTopWithin(anchorEl, el) + anchorEl.offsetHeight / 2 : el.offsetHeight / 2;
+      out.push({ id: deck.id, x: deck.x, y: deck.y, width: el.offsetWidth, height: el.offsetHeight, anchorY });
     }
     return out;
   }
@@ -184,11 +296,12 @@ export class DeckRenderer {
     };
   }
 
-  /** 새 덱 필드 크기 — 아직 하나도 없으면 임시로 하나 그려서 잰다. */
-  measureBoardSize() {
-    const any = this.boardEls.values().next().value;
-    if (any) return { width: any.offsetWidth, height: any.offsetHeight };
-    return { width: 552, height: 900 };
+  /** 새 필드 크기(빈 자리 찾기용) — 같은 종류("deck" | "list")가 이미 있으면 그걸 재고, 없으면 대략값. */
+  measureBoardSize(kind = "deck") {
+    for (const [id, el] of this.boardEls) {
+      if ((this.model.decks.get(id)?.kind || "deck") === kind) return { width: el.offsetWidth, height: el.offsetHeight };
+    }
+    return kind === "list" ? { width: 552, height: 260 } : { width: 552, height: 900 };
   }
 
   // ---------- 드래그(헤더로만) ----------
@@ -235,8 +348,10 @@ export class DeckRenderer {
     const me = { id: g.id, width: g.width, height: g.height };
     const snapped = computeRectSnap(others, g.startX + g.dx, g.startY + g.dy, me, {
       threshold: SNAP_THRESHOLD_PX / this.camera.scale,
-      colSpacing: g.width + DECK_GAP,
-      rowSpacing: g.height + DECK_GAP,
+      // 덱 높이는 안의 내용(장비 칩 줄바꿈 등)에 따라 제각각이라 중심 기준 간격 대신 테두리 기준 간격,
+      // 세로 정렬은 위쪽끼리만.
+      gap: DECK_GAP,
+      topOnly: true,
     });
     let nx = snapped.x, ny = snapped.y;
     let { guideX, guideY } = snapped;
@@ -324,4 +439,11 @@ export class DeckRenderer {
     for (const [k, v] of Object.entries(attrs)) line.setAttribute(k, v);
     line.style.display = "inline"; // ""로 비우면 CSS의 display:none으로 돌아가 버린다
   }
+}
+
+/** el의 위쪽이 ancestor 위쪽에서 얼마나 아래에 있는지(CSS px, 줌과 무관). */
+function offsetTopWithin(el, ancestor) {
+  let y = 0;
+  for (let n = el; n && n !== ancestor; n = n.offsetParent) y += n.offsetTop;
+  return y;
 }

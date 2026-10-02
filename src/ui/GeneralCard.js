@@ -20,7 +20,7 @@ export function createGeneralCard(gi) {
         <button type="button" class="portrait-remove" data-act="remove-portrait" title="초상화 지우기" aria-label="초상화 지우기">×</button>
       </div>
       <div class="general-ident">
-        <input type="text" class="general-name" data-path="${base}.name" placeholder="장수 ${gi + 1}">
+        <input type="text" class="general-name" list="dl-general-names" autocomplete="off" data-path="${base}.name" placeholder="장수 ${gi + 1}">
         <div class="troop-row">
           ${selectHTML("troopTypes", `${base}.troopType`, { placeholder: "병종" })}
           ${selectHTML("troopTraditions", `${base}.troopTradition`, { placeholder: "전통" })}
