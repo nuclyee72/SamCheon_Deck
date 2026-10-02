@@ -25,6 +25,7 @@ const portraitFileEl = document.getElementById("portrait-file");
 const appEl = document.getElementById("app");
 const relsEl = document.getElementById("rels-layer");
 const relEditorEl = document.getElementById("rel-editor");
+const updatedAtEl = document.querySelector("#board-meta .updated-at");
 
 
 // ---------- 공개 보기 / 편집 ----------
@@ -731,13 +732,17 @@ model.onChange(() => {
   suggestTimer = setTimeout(refreshNameSuggestions, 300);
 });
 
-// ---------- 보드 수정일(오른쪽 위) ----------
+// ---------- 보드 수정일(화면 오른쪽 아래) ----------
 // 처음 불러온 뒤로 보드가 바뀔 때마다(덱 내용·위치·관계선·실행취소 등) 지금 시각으로 — 자동저장과
 // 게시용 board.json에 같이 들어가서, 공개 보기에서는 게시된 보드의 마지막 수정일이 보인다.
 let boardLoaded = false;
 function setUpdatedAt(ts) {
   model.updatedAt = ts ?? null;
-  toolbar.setUpdatedAt(model.updatedAt);
+  updatedAtEl.hidden = !model.updatedAt;
+  if (!model.updatedAt) return;
+  const d = new Date(model.updatedAt);
+  const pad = (n) => String(n).padStart(2, "0");
+  updatedAtEl.textContent = `수정일 ${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}`;
 }
 model.onChange(() => {
   if (boardLoaded && !PUBLIC) setUpdatedAt(Date.now());

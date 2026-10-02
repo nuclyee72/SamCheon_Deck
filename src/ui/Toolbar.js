@@ -39,10 +39,6 @@ export class Toolbar {
         <button type="button" data-action="redo" title="다시실행" aria-label="다시실행">↷</button>
       </div>
       <div class="toolbar-group toolbar-group-right">
-        <span class="toolbar-meta">
-          <span class="updated-at" data-role="updated-at" hidden></span>
-          <a class="credit" href="https://github.com/nuclyee72" target="_blank" rel="noopener">by nuclyee</a>
-        </span>
         <button type="button" data-action="theme-toggle" title="다크 모드 전환" aria-label="다크 모드 전환">🌙</button>
       </div>
       <div class="toolbar-group">
@@ -237,17 +233,6 @@ export class Toolbar {
       btn.setAttribute("aria-pressed", String(btn.dataset.ui === mode));
     }
     if (mode === "view") this.closeMenus();
-  }
-
-  /** 보드 수정일(ms) — 없으면 숨긴다. 표시는 날짜만, 마우스를 올리면 시각까지. */
-  setUpdatedAt(ts) {
-    const el = this.el.querySelector('[data-role="updated-at"]');
-    el.hidden = !ts;
-    if (!ts) return;
-    const d = new Date(ts);
-    const pad = (n) => String(n).padStart(2, "0");
-    el.textContent = `수정일 ${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())}`;
-    el.title = `${el.textContent} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
 
   setSaveState(text) {
