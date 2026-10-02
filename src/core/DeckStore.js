@@ -62,6 +62,7 @@ export class DeckStore {
       for (const d of model.decks.values()) s.decks.put(d);
       s.meta.put(model.view, "view");
       s.meta.put([...model.relations.values()], "relations");
+      s.meta.put(model.updatedAt ?? null, "updatedAt");
     });
   }
 
@@ -71,7 +72,8 @@ export class DeckStore {
       const decks = await reqToPromise(s.decks.getAll());
       const view = await reqToPromise(s.meta.get("view"));
       const relations = await reqToPromise(s.meta.get("relations"));
-      return { decks, relations: relations || [], view: view || { panX: 0, panY: 0, scale: 1 } };
+      const updatedAt = await reqToPromise(s.meta.get("updatedAt"));
+      return { decks, relations: relations || [], view: view || { panX: 0, panY: 0, scale: 1 }, updatedAt: updatedAt ?? null };
     });
   }
 

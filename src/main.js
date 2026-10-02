@@ -604,6 +604,7 @@ async function boardExportData() {
   const images = await imagesToDataURLs(await store.collectImages(decks));
   return {
     kind: "samguk-deck-board", version: EXPORT_VERSION, exportedAt: new Date().toISOString(),
+    updatedAt: model.updatedAt ?? null,
     decks, relations: [...model.relations.values()], view: model.view, images,
   };
 }
@@ -626,7 +627,9 @@ async function fetchPublished() {
     const data = await res.json();
     if (data.kind !== "samguk-deck-board") return null;
     await store.restoreImages(await dataURLsToImages(data.images));
-    return { decks: data.decks || [], relations: data.relations || [], view: model.view };
+    // 수정일이 없는 예전 게시본은 게시(내보낸) 시각으로.
+    const updatedAt = data.updatedAt ?? (data.exportedAt ? Date.parse(data.exportedAt) : null);
+    return { decks: data.decks || [], relations: data.relations || [], view: model.view, updatedAt };
   } catch (err) {
     console.error(err);
     return null;
@@ -639,6 +642,7 @@ async function loadPublishedBoard() {
   const data = await fetchPublished();
   if (!data) return alert("게시된 보드를 불러오지 못했습니다. 아직 게시하지 않았을 수 있어요.");
   model.loadJSON(data);
+  setUpdatedAt(data.updatedAt);
   camera.fitToContent(renderer.getBounds());
 }
 
@@ -733,6 +737,18 @@ model.onChange(() => {
   suggestTimer = setTimeout(refreshNameSuggestions, 300);
 });
 
+// ---------- 보드 수정일(오른쪽 위) ----------
+// 처음 불러온 뒤로 보드가 바뀔 때마다(덱 내용·위치·관계선·실행취소 등) 지금 시각으로 — 자동저장과
+// 게시용 board.json에 같이 들어가서, 공개 보기에서는 게시된 보드의 마지막 수정일이 보인다.
+let boardLoaded = false;
+function setUpdatedAt(ts) {
+  model.updatedAt = ts ?? null;
+  toolbar.setUpdatedAt(model.updatedAt);
+}
+model.onChange(() => {
+  if (boardLoaded && !PUBLIC) setUpdatedAt(Date.now());
+});
+
 // ---------- 자동저장 / 빈 화면 안내 ----------
 function updateEmptyHint() {
   emptyHintEl.style.display = model.decks.size ? "none" : "flex";
@@ -815,6 +831,8 @@ async function init() {
   // 공개 보기는 항상 게시본, 편집은 이 브라우저에 저장된 게 하나도 없을 때(처음 쓰는 컴퓨터) 게시본에서 시작.
   if (PUBLIC || !data.decks.length) data = (await fetchPublished()) || data || { decks: [], relations: [] };
   model.loadJSON(data); // "reset" → renderer.renderAll()
+  setUpdatedAt(data.updatedAt ?? null);
+  boardLoaded = true;
   if (model.decks.size) camera.fitToContent(renderer.getBounds(), { animate: false });
   updateEmptyHint();
   toolbar.setSaveState("저장됨");

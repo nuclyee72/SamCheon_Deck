@@ -270,16 +270,18 @@ export class DeckRenderer {
   }
 
   /** 겹침 판정·스냅·전체보기에 쓰는 사각형들(크기는 DOM 실측, 줌과 무관한 CSS px).
-   * anchorY = 덱 위쪽에서 장수 초상화 세로 가운데까지 — 관계선 기준점. 초상화는 모든 표시 단계에서
-   * 보이고 그 위의 칸(헤더·비고)만 영향을 줘서, 많이/보통에서는 같고 적게에서만 비고 높이만큼 올라간다. */
+   * anchorY = 관계선 기준점 높이 — "비고 줄이 다 보일 때(많이/보통)의 장수 초상화 세로 가운데". 적게에서는
+   * 비고 줄이 접혀 초상화가 올라가지만 기준점은 그대로 둬서, 표시 단계를 바꿔도 관계선이 안 움직인다. */
   rects() {
     const out = [];
     for (const deck of this.model.decks.values()) {
       const el = this.boardEls.get(deck.id);
       if (!el) continue;
       // 리스트에는 장수 카드가 없으니 헤더(시즌 제목) 높이에 건다.
-      const anchorEl = el.querySelector(".general-card .portrait") || el.querySelector(".deck-header");
-      const anchorY = anchorEl ? offsetTopWithin(anchorEl, el) + anchorEl.offsetHeight / 2 : el.offsetHeight / 2;
+      const portrait = el.querySelector(".general-card .portrait");
+      const anchorEl = portrait || el.querySelector(".deck-header");
+      let anchorY = anchorEl ? offsetTopWithin(anchorEl, el) + anchorEl.offsetHeight / 2 : el.offsetHeight / 2;
+      if (portrait) anchorY += collapsedNotesHeight(el);
       out.push({ id: deck.id, x: deck.x, y: deck.y, width: el.offsetWidth, height: el.offsetHeight, anchorY });
     }
     return out;
@@ -446,4 +448,17 @@ function offsetTopWithin(el, ancestor) {
   let y = 0;
   for (let n = el; n && n !== ancestor; n = n.offsetParent) y += n.offsetTop;
   return y;
+}
+
+/** 덱의 비고 줄(비고 + 전형)이 많이/보통일 때보다 지금 얼마나 덜 차지하는지 — 적게에서 비고가 숨으면
+ * 그만큼 초상화가 올라가니, 관계선 기준점을 그만큼 내려 원래 자리에 둔다. 비고 칸은 높이가 고정이라
+ * 숨어 있어도(display:none) 계산된 스타일로 원래 높이를 알 수 있다. */
+function collapsedNotesHeight(boardEl) {
+  const row = boardEl.querySelector(".deck-notes-row");
+  const notes = boardEl.querySelector(".deck-notes");
+  if (!row || !notes) return 0;
+  const gap = parseFloat(getComputedStyle(boardEl).rowGap) || 0;
+  const full = (parseFloat(getComputedStyle(notes).height) || 0) + gap;
+  const now = row.offsetHeight ? row.offsetHeight + gap : 0;
+  return Math.max(0, full - now);
 }

@@ -25,12 +25,14 @@
 
 /* ---------- 보기 모드(#decks-layer[data-view]) ----------
    많이(full) = 전부, 보통(normal) = 장수·병종/전통·전법(+비고), 적게(compact) = 장수(초상화·이름·병부)만.
-   헤더(덱 이름·메뉴)와 전형은 항상 보인다(적게에서는 비고만 숨고 전형은 그 줄 오른쪽에 남음). 덱 폭은 그대로라 옆 덱과의 배치는 안 흐트러진다. */
+   헤더(덱 이름·메뉴)는 항상 보인다. 적게에서는 비고가 숨고, 전형은 수정 모드에서만 그 줄 오른쪽에 남는다. 덱 폭은 그대로라 옆 덱과의 배치는 안 흐트러진다. */
 #decks-layer[data-view="normal"] .general-section:not([data-section="tactics"]) { display: none; }
 #decks-layer[data-view="compact"] .general-section,
 #decks-layer[data-view="compact"] .troop-row,
 #decks-layer[data-view="compact"] .deck-notes { display: none; }
 #decks-layer[data-view="compact"] .general-top { align-items: center; }
+/* 보기 모드에서 적게면 전형도 숨긴다(비고 줄 전체) — 수정 모드에서는 고칠 수 있게 남겨둔다 */
+#app[data-ui-mode="view"] #decks-layer[data-view="compact"] .deck-notes-row { display: none; }
 
 .view-mode-group { gap: 2px; }
 .view-mode-label { font-size: 12px; color: var(--muted); margin-right: 4px; }
@@ -762,6 +764,19 @@
 }
 
 .ui-mode-group { gap: 2px; }
+
+/* 오른쪽 위 수정일 · 크레딧 */
+.toolbar-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-right: 4px;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+#toolbar .credit { color: var(--muted); text-decoration: none; font-weight: 600; }
+#toolbar .credit:hover { color: var(--accent); }
 
 /* 공개 보기(방문자) — 수정/보기 전환·💾·저장 표시를 숨긴다(보기 모드라 수정용 메뉴는 이미 숨겨짐) */
 #app[data-public] .ui-mode-group,
