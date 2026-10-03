@@ -1,4 +1,4 @@
-import { GENERAL_COUNT, STAT_TEXT } from "../core/DeckModel.js";
+import { GENERAL_COUNT, STAT_TEXT, ART_TEXT } from "../core/DeckModel.js";
 import { createGeneralCard, syncGeneralCard } from "./GeneralCard.js";
 import { setTacticOpen } from "./TacticBox.js";
 import { selectHTML, syncSelect, catalogList } from "./selects.js";
@@ -48,6 +48,8 @@ export function createDeckBoard(deck, { onInput, onAction }) {
     onInput(target.dataset.path, value);
     // 속성치에서 "텍스트박스"를 고르면 방금 열린 입력칸으로 바로 커서를 옮긴다.
     if (value === STAT_TEXT && target.closest(".stat-choice")) target.parentElement.querySelector(".stat-text")?.focus();
+    // 병법에서 "고유"를 고르면 그 칸 아래 이름 입력칸으로.
+    if (value === ART_TEXT && target.closest(".art-choice")) target.parentElement.querySelector(".art-text")?.focus();
   });
 
   el.addEventListener("click", (e) => {

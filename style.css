@@ -382,6 +382,10 @@
   padding: 4px 0 4px 4px;
   text-overflow: ellipsis;
 }
+/* 병법 한 칸: 셀렉트 + "고유"를 골랐을 때만 그 아래에 이름 입력칸 */
+.art-choice { display: grid; gap: 4px; min-width: 0; }
+.deck-board .art-text { display: none; font-size: 11px; padding: 4px; }
+.art-choice.is-text .art-text { display: block; }
 
 /* 장비/탈것 옵 한 줄: "1옵  [칩 ×][칩 ×] … [+▼]" — 칩이 많으면 다음 줄로 넘어간다(덱 높이가
    늘어나면 아래 덱은 DeckRenderer가 밀어낸다). */
@@ -813,7 +817,8 @@
 #app[data-ui-mode="view"] .tactic:not(.has-alts) .tactic-toggle,
 #app[data-ui-mode="view"] .list-add,
 #app[data-ui-mode="view"] .list-item-remove,
-#app[data-ui-mode="view"] .stat-choice.is-text select { display: none; }
+#app[data-ui-mode="view"] .stat-choice.is-text select,
+#app[data-ui-mode="view"] .art-choice.is-text select { display: none; }
 
 #app[data-ui-mode="view"] .deck-header,
 #app[data-ui-mode="view"] .deck-board { cursor: grab; }

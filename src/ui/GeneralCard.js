@@ -1,4 +1,4 @@
-import { TACTIC_COUNT, ART_COUNT, GEAR_OPTION_KEYS, STAT_TEXT } from "../core/DeckModel.js";
+import { TACTIC_COUNT, ART_COUNT, GEAR_OPTION_KEYS, STAT_TEXT, ART_TEXT } from "../core/DeckModel.js";
 import { createTacticBox, syncTacticBox } from "./TacticBox.js";
 import { selectHTML, syncSelect, catalogList, catalogName } from "./selects.js";
 
@@ -36,7 +36,11 @@ export function createGeneralCard(gi) {
     <div class="general-section" data-section="arts">
       <h4>병법</h4>
       <div class="pick-row dup-group">
-        ${Array.from({ length: ART_COUNT }, (_, ai) => selectHTML("arts", `${base}.arts.${ai}`, { placeholder: "—" })).join("")}
+        ${Array.from({ length: ART_COUNT }, (_, ai) => `
+          <div class="art-choice">
+            ${selectHTML("arts", `${base}.arts.${ai}`, { placeholder: "—", extras: [{ id: ART_TEXT, name: "고유" }] })}
+            <input type="text" class="art-text" data-path="${base}.artTexts.${ai}" placeholder="고유 병법">
+          </div>`).join("")}
       </div>
     </div>
 
@@ -118,14 +122,18 @@ export function syncGeneralCard(el, general, portraitUrl) {
     syncGearOption(rowEl, general[field][Number(oi)]);
   }
 
-  // 병법 3개 중 같은 걸 두 번 고르면 그 칸들에 경고 테두리.
+  // 병법 3개 중 같은 걸 두 번 고르면 그 칸들에 경고 테두리("고유"는 이름이 각자 달라서 제외).
   for (const group of el.querySelectorAll(".dup-group")) {
     const selects = [...group.querySelectorAll("select")];
     for (const select of selects) {
       const v = select.value;
-      select.classList.toggle("dup", !!v && selects.filter((x) => x.value === v).length > 1);
+      select.classList.toggle("dup", !!v && v !== ART_TEXT && selects.filter((x) => x.value === v).length > 1);
     }
   }
+  el.querySelectorAll(".art-choice").forEach((choice, ai) => {
+    setInput(choice.querySelector(".art-text"), general.artTexts[ai]);
+    choice.classList.toggle("is-text", general.arts[ai] === ART_TEXT);
+  });
 
   setInput(el.querySelector(".stat-text"), general.statText);
   el.querySelector(".stat-choice").classList.toggle("is-text", general.statChoice === STAT_TEXT);

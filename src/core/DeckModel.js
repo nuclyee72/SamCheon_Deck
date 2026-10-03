@@ -7,6 +7,8 @@ export const ART_COUNT = 3;
 export const GEAR_OPTION_KEYS = ["opt1", "opt2"];
 /** 속성치 셀렉트의 "텍스트박스" 선택지 값 — 고르면 statText 입력칸이 열린다. */
 export const STAT_TEXT = "text";
+/** 병법 셀렉트의 "고유" 선택지 값 — 고르면 그 칸 아래에 병법 이름 입력칸(artTexts)이 열린다. */
+export const ART_TEXT = "custom";
 
 const emptyGearOptions = () => GEAR_OPTION_KEYS.map(() => []);
 
@@ -19,7 +21,8 @@ export function emptyGeneral() {
     troopType: null,
     troopTradition: null,
     tactics: Array.from({ length: TACTIC_COUNT }, () => ({ text: "", alternatives: [], required: false })), // required = 필수 전법(★)
-    arts: Array.from({ length: ART_COUNT }, () => null),
+    arts: Array.from({ length: ART_COUNT }, () => null), // arts id 또는 ART_TEXT
+    artTexts: Array.from({ length: ART_COUNT }, () => ""), // arts[a] === ART_TEXT일 때 직접 입력한 고유 병법 이름
     equipmentOptions: emptyGearOptions(), // [옵] = 그 옵 후보 중 추천 id들(개수 제한 없음, 앞부터 추천 순서)
     mountOptions: emptyGearOptions(), // 장비와 같은 형식
     statChoice: null, // statOptions id 또는 STAT_TEXT
@@ -89,6 +92,7 @@ export function normalizeDeck(deck) {
       required: !!src.tactics?.[t]?.required,
     }));
     g.arts = g.arts.map((_, a) => src.arts?.[a] ?? null);
+    g.artTexts = g.artTexts.map((_, a) => src.artTexts?.[a] || "");
     const gearRows = (rows) => GEAR_OPTION_KEYS.map((_, o) => (Array.isArray(rows?.[o]) ? rows[o].filter(Boolean) : []));
     g.equipmentOptions = gearRows(src.equipmentOptions);
     g.mountOptions = gearRows(src.mountOptions);
