@@ -77,7 +77,8 @@
         <div class="crop-canvas-wrap">
           <canvas id="crop-canvas" width="280" height="280"></canvas>
         </div>
-        <input type="range" id="crop-zoom" min="1" max="3" step="0.01" value="1" aria-label="확대/축소">
+        <input type="range" id="crop-zoom" min="0" max="1000" step="1" value="0" aria-label="확대/축소">
+        <p class="crop-hint">드래그로 위치 · 슬라이더·마우스 휠·두 손가락으로 크기</p>
         <div class="crop-modal-actions">
           <button type="button" data-action="crop-cancel">취소</button>
           <button type="button" class="primary" data-action="crop-apply">적용</button>

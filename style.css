@@ -1000,3 +1000,10 @@
 .rel-editor-arrow-row button:hover { background: var(--surface); }
 .rel-editor-delete { color: var(--danger); }
 .rel-editor-delete:hover { background: var(--surface); border-color: var(--danger); }
+
+/* ---------- 초상화 크롭 모달 ----------
+   base.css(가계도)는 원형 틀이라, 덱 보드의 초상화 틀(모서리 둥근 사각형, .portrait-btn 14px / 108px)과
+   같은 비율로 바꾼다 — 편집 화면에서 본 모양 그대로 초상화 칸에 들어간다. */
+.deck-app .crop-canvas-wrap { border-radius: 13%; margin-bottom: 12px; }
+.deck-app #crop-zoom { margin-bottom: 6px; }
+.crop-hint { margin: 0 0 14px; text-align: center; font-size: 11.5px; color: var(--muted); }
