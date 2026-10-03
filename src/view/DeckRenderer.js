@@ -85,6 +85,11 @@ export class DeckRenderer {
     else if (type === "deck:add") this._add(payload);
     else if (type === "deck:update") this._update(payload);
     else if (type === "deck:remove") this._remove(payload);
+    // 리스트가 바뀌면(장수 이름·초상화, 추가/삭제) 덱 장수 카드의 "리스트에서 빌려 온 초상화"도 다시 맞춘다.
+    // 지워진 덱은 종류를 모르니 그때도 다시 맞춘다.
+    if ((type === "deck:add" || type === "deck:update") && payload.kind === "list" || type === "deck:remove") {
+      for (const d of this.model.decks.values()) if (d.kind !== "list") this._sync(d);
+    }
   }
 
   renderAll() {
@@ -197,10 +202,24 @@ export class DeckRenderer {
     const el = this.boardEls.get(deck.id);
     const portraitUrlFor = (pid) => this._portraitUrl(pid, deck.id);
     if (deck.kind === "list") syncListBoard(el, deck, portraitUrlFor);
-    else syncDeckBoard(el, deck, portraitUrlFor);
+    else syncDeckBoard(el, deck, portraitUrlFor, this._listPortraitIndex());
     setBoardEditable(el, this.editable);
     this._applyHighlight(el, deck);
     this._applyOwned(el, deck);
+  }
+
+  /** 리스트 장수 이름(generalKey) → 초상화 id — 덱의 장수 카드에 초상화가 없으면 이름이 같은 리스트 장수의
+   * 초상화를 대신 보여준다(데이터에는 안 넣고 화면에서만). 같은 이름이 여러 리스트에 있으면 먼저 나온 것. */
+  _listPortraitIndex() {
+    const index = new Map();
+    for (const d of this.model.decks.values()) {
+      if (d.kind !== "list") continue;
+      for (const g of d.listGenerals) {
+        const key = generalKey(g.name);
+        if (key && g.portraitId && !index.has(key)) index.set(key, g.portraitId);
+      }
+    }
+    return index;
   }
 
   // ---------- 보유 장수·전법(연두색 테두리) ----------
@@ -302,8 +321,9 @@ export class DeckRenderer {
         this._loadingPortraits.delete(portraitId);
         if (!blob) return;
         this.portraitUrls.set(portraitId, URL.createObjectURL(blob));
+        // 그 초상화를 쓰는 덱 + 리스트 초상화를 빌려 쓰는 덱(어느 덱인지 따로 안 세고 덱 전부)
         for (const d of this.model.decks.values()) {
-          if (deckPortraitIds(d).includes(portraitId)) this._sync(d);
+          if (d.kind !== "list" || deckPortraitIds(d).includes(portraitId)) this._sync(d);
         }
       });
     }

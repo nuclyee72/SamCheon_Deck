@@ -1,4 +1,4 @@
-import { GENERAL_COUNT, STAT_TEXT, ART_TEXT } from "../core/DeckModel.js";
+import { GENERAL_COUNT, STAT_TEXT, ART_TEXT, generalKey } from "../core/DeckModel.js";
 import { createGeneralCard, syncGeneralCard } from "./GeneralCard.js";
 import { setTacticOpen } from "./TacticBox.js";
 import { selectHTML, syncSelect, catalogList } from "./selects.js";
@@ -105,8 +105,10 @@ export function createDeckBoard(deck, { onInput, onAction }) {
   return el;
 }
 
-/** portraitUrlFor(portraitId) → objectURL 또는 null(아직 못 읽었으면 null, 읽은 뒤 다시 sync됨). */
-export function syncDeckBoard(el, deck, portraitUrlFor) {
+/** portraitUrlFor(portraitId) → objectURL 또는 null(아직 못 읽었으면 null, 읽은 뒤 다시 sync됨).
+ * listPortraits: 리스트 장수 이름(generalKey) → 초상화 id — 장수 카드에 자기 초상화가 없으면 이름이 같은
+ * 리스트 장수의 초상화를 빌려 보여준다. */
+export function syncDeckBoard(el, deck, portraitUrlFor, listPortraits = new Map()) {
   const name = el.querySelector(".deck-name");
   if (document.activeElement !== name) name.value = deck.name;
   const notes = el.querySelector(".deck-notes");
@@ -117,7 +119,9 @@ export function syncDeckBoard(el, deck, portraitUrlFor) {
   syncTint(el, deck);
   el.querySelectorAll(".general-card").forEach((cardEl, gi) => {
     const g = deck.generals[gi];
-    syncGeneralCard(cardEl, g, g.portraitId ? portraitUrlFor(g.portraitId) : null);
+    const borrowedId = g.portraitId ? null : listPortraits.get(generalKey(g.name)) ?? null;
+    const pid = g.portraitId || borrowedId;
+    syncGeneralCard(cardEl, g, pid ? portraitUrlFor(pid) : null, { borrowed: !!borrowedId });
   });
 }
 

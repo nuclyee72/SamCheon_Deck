@@ -109,8 +109,9 @@ function esc(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 }
 
-/** general: 덱의 장수 데이터, portraitUrl: 초상화 objectURL(없으면 null). */
-export function syncGeneralCard(el, general, portraitUrl) {
+/** general: 덱의 장수 데이터, portraitUrl: 초상화 objectURL(없으면 null). borrowed: 그 초상화가 이 장수 것이
+ * 아니라 이름이 같은 리스트 장수에게서 빌려 온 것(× 지우기 버튼을 숨긴다 — 지울 게 없으니까). */
+export function syncGeneralCard(el, general, portraitUrl, { borrowed = false } = {}) {
   setInput(el.querySelector(".general-name"), general.name);
 
   for (const select of el.querySelectorAll("select[data-path]")) {
@@ -151,6 +152,10 @@ export function syncGeneralCard(el, general, portraitUrl) {
 
   el.querySelector(".portrait-img").src = portraitUrl || DEFAULT_AVATAR;
   el.querySelector(".portrait").classList.toggle("has-image", !!portraitUrl);
+  el.querySelector(".portrait").classList.toggle("borrowed", borrowed);
+  el.querySelector(".portrait-btn").title = borrowed
+    ? "리스트에 있는 같은 이름 장수의 초상화 · 클릭해서 이 덱만 다른 초상화로 바꾸기"
+    : "클릭해서 초상화 선택 · 이미지 파일을 끌어다 놓아도 돼요";
 }
 
 function setInput(input, value) {
