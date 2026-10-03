@@ -4,7 +4,7 @@ import { UndoManager } from "./lib/UndoManager.js";
 import { ImageCropEditor } from "./lib/ImageCropEditor.js";
 import { uuid } from "./lib/uuid.js";
 import { findFreeRectSpot, rectCollides } from "./lib/fieldSnap.js";
-import { DeckModel, cloneDeckContent, emptyListGeneral, deckPortraitIds, DECK_TINTS } from "./core/DeckModel.js";
+import { DeckModel, cloneDeckContent, emptyListGeneral, deckPortraitIds, DECK_TINTS, generalKey } from "./core/DeckModel.js";
 import { DeckStore, MemoryDeckStore, imagesToDataURLs, dataURLsToImages, EXPORT_VERSION } from "./core/DeckStore.js";
 import { DeckRenderer, DECK_GAP } from "./view/DeckRenderer.js";
 import { RelationRenderer } from "./view/RelationRenderer.js";
@@ -59,6 +59,7 @@ const renderer = new DeckRenderer({
   onInput: (deckId, path, value) => model.setPath(deckId, path, value),
   onAction: handleDeckAction,
   onMove: () => relations?.refresh(),
+  onToggleOwned: (name) => toggleOwned(name),
 });
 
 // DeckRenderer보다 나중에 만들어야 한다 — 모델 변경 때 덱 DOM이 먼저 갱신된 뒤 선 끝점을 잰다.
@@ -88,6 +89,9 @@ const toolbar = new Toolbar(toolbarEl, {
   viewMode: (mode) => applyViewMode(mode),
   uiMode: (mode) => applyUiMode(mode),
   pickRelationTemplate: (id) => startConnect(id),
+  ownedMode: () => setOwnedMode(!renderer.ownedMode),
+  ownedAll: () => setAllOwned(true),
+  ownedNone: () => setAllOwned(false),
   cancelConnect: () => exitConnect(),
 });
 toolbar.setRelationTemplates(CATALOG.relationTemplates);
@@ -129,6 +133,51 @@ function applyViewMode(mode) {
   const mode = VIEW_MODES.includes(saved) ? saved : "full";
   decksEl.dataset.view = mode; // 첫 로드 전이라 덱이 없음 — 밀어내기 계산 없이 표시만 맞춘다
   toolbar.setViewMode(mode);
+}
+
+// ---------- 보유 장수 체크 — 이 브라우저에만 기억(공개 보기에서도) ----------
+// 장수 이름(generalKey) 목록이라 보드 데이터·게시본·실행취소와 상관없고, 같은 이름은 어느 리스트·덱에서나
+// 같이 보유로 보인다. 보유 체크 모드(툴바 "보유 체크")에서 리스트의 장수 칸을 누르면 켜고 끈다.
+const OWNED_KEY = "deck-owned-generals";
+let owned = new Set();
+try { owned = new Set(JSON.parse(localStorage.getItem(OWNED_KEY) || "[]").map(generalKey).filter(Boolean)); } catch { /* ignore */ }
+renderer.setOwned(owned);
+
+function saveOwned() {
+  renderer.setOwned(owned);
+  try { localStorage.setItem(OWNED_KEY, JSON.stringify([...owned])); } catch { /* 저장 안 돼도 표시는 됨 */ }
+}
+
+function toggleOwned(name) {
+  const key = generalKey(name);
+  if (!key) return;
+  if (owned.has(key)) owned.delete(key);
+  else owned.add(key);
+  saveOwned();
+}
+
+/** 전부 보유 = 보드(리스트·덱)에 있는 장수를 전부 보유로 / 전부 미보유 = 보유 체크를 전부 해제. */
+function setAllOwned(on) {
+  if (on) {
+    const keys = new Set();
+    for (const d of model.decks.values()) {
+      for (const g of (d.kind === "list" ? d.listGenerals : d.generals) || []) keys.add(generalKey(g.name));
+    }
+    keys.delete("");
+    if (!confirm(`보드에 있는 장수 ${keys.size}명을 전부 보유로 할까요?`)) return;
+    keys.forEach((k) => owned.add(k));
+  } else {
+    if (!owned.size || !confirm("보유 체크를 전부 해제할까요?")) return;
+    owned.clear();
+  }
+  saveOwned();
+}
+
+function setOwnedMode(on) {
+  renderer.ownedMode = on;
+  appEl.toggleAttribute("data-owned-mode", on);
+  toolbar.setOwnedMode(on);
+  if (on) renderer.setHighlight(null);
 }
 
 // ---------- 덱끼리 관계선 긋기(연결 모드) ----------
@@ -809,6 +858,7 @@ function isTyping(e) {
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
     renderer.setHighlight(null);
+    setOwnedMode(false);
     exitConnect();
     closeRelEditor();
     closeAllTactics();

@@ -15,7 +15,7 @@ export const DECK_GAP = 300;
  * 덱 필드 크기는 모델에 없고 DOM에서 잰다(양식이 고정이라 사실상 일정함).
  */
 export class DeckRenderer {
-  constructor({ model, store, decksEl, guidesEl, camera, trashEl, onInput, onAction, onSelect, onMove }) {
+  constructor({ model, store, decksEl, guidesEl, camera, trashEl, onInput, onAction, onSelect, onMove, onToggleOwned }) {
     this.model = model;
     this.store = store;
     this.decksEl = decksEl;
@@ -26,6 +26,7 @@ export class DeckRenderer {
     this.onAction = onAction;
     this.onSelect = onSelect;
     this.onMove = onMove; // 드래그 중(모델 이벤트 없이 직접 옮기는 동안) 관계선을 따라오게 하는 데 씀
+    this.onToggleOwned = onToggleOwned; // 보유 체크 모드에서 리스트 장수 칸을 누를 때(이름)
 
     this.boardEls = new Map(); // deckId -> element
     this.boardDrags = new Map(); // deckId -> DragController(헤더)
@@ -37,6 +38,10 @@ export class DeckRenderer {
     // 리스트에서 누른 장수/전법 — { type: "general" | "tactic", key: generalKey(이름) } | null.
     // 같은 이름의 장수 칸 / 전법 칸을 보드 전체에서 강조한다.
     this.highlight = null;
+    // 보유한 장수(generalKey 이름 Set) — 이 브라우저에만 저장(main.js). 보유 체크 모드에서는 리스트의
+    // 장수 칸을 누르면 강조 대신 보유를 켜고 끈다.
+    this.owned = new Set();
+    this.ownedMode = false;
 
     // 표시 단계·수정/보기 전환마다 "그 화면에서의 덱 y 위치"를 기억해 둔다(키: _layoutKey()) — 많이로
     // 바꿔 밀려 내려간 덱이 적게로 돌아오면 원래 자리로 돌아가게. 사용자가 덱을 옮기거나 더하거나
@@ -90,7 +95,10 @@ export class DeckRenderer {
     const handlers = {
       onInput: (path, value) => this.editable && this.onInput(deck.id, path, value),
       onAction: (act, ctx) => this.editable && this.onAction(deck.id, act, ctx),
-      onHighlight: (type, name, opts) => this.toggleHighlight(type, name, opts),
+      onHighlight: (type, name, opts) => {
+        if (this.ownedMode && type === "general") this.onToggleOwned?.(name);
+        else this.toggleHighlight(type, name, opts);
+      },
     };
     const el = deck.kind === "list" ? createListBoard(deck, handlers) : createDeckBoard(deck, handlers);
     positionDeckBoard(el, deck);
@@ -190,6 +198,31 @@ export class DeckRenderer {
     else syncDeckBoard(el, deck, portraitUrlFor);
     setBoardEditable(el, this.editable);
     this._applyHighlight(el, deck);
+    this._applyOwned(el, deck);
+  }
+
+  // ---------- 보유 장수(연두색 테두리) ----------
+
+  setOwned(owned) {
+    this.owned = owned;
+    for (const [id, el] of this.boardEls) {
+      const deck = this.model.decks.get(id);
+      if (deck) this._applyOwned(el, deck);
+    }
+  }
+
+  /** 보유한 장수 칸(리스트)·장수 카드(덱)에 .owned, 장수 3명을 모두 보유한 덱에 .all-owned. */
+  _applyOwned(el, deck) {
+    const has = (name) => {
+      const key = generalKey(name);
+      return !!key && this.owned.has(key);
+    };
+    if (deck.kind === "list") {
+      el.querySelectorAll(".list-general").forEach((item, i) => item.classList.toggle("owned", has(deck.listGenerals[i]?.name)));
+      return;
+    }
+    el.querySelectorAll(".general-card").forEach((card, gi) => card.classList.toggle("owned", has(deck.generals[gi]?.name)));
+    el.classList.toggle("all-owned", deck.generals.length > 0 && deck.generals.every((g) => has(g.name)));
   }
 
   // ---------- 같은 장수/전법 강조(리스트의 장수·전법 칸을 누르면) ----------

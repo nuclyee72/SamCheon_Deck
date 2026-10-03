@@ -31,6 +31,11 @@ export class Toolbar {
         <button type="button" class="toggle" data-action="view-mode" data-mode="normal" title="장수·병종·전법만">보통</button>
         <button type="button" class="toggle" data-action="view-mode" data-mode="compact" title="장수만">적게</button>
       </div>
+      <div class="toolbar-group owned-group">
+        <button type="button" class="toggle" data-action="owned-mode" title="켜고 리스트의 장수 칸을 누르면 보유/미보유 전환(이 브라우저에만 저장)">보유 체크</button>
+        <button type="button" class="owned-extra" data-action="owned-all" title="보드에 있는 장수를 전부 보유로">전부 보유</button>
+        <button type="button" class="owned-extra" data-action="owned-none" title="보유 체크를 전부 해제">전부 미보유</button>
+      </div>
       <div class="toolbar-group toolbar-fit-group">
         <button type="button" data-action="fit" title="한 화면에 넣기" aria-label="한 화면에 넣기">⛶</button>
       </div>
@@ -233,6 +238,14 @@ export class Toolbar {
       btn.setAttribute("aria-pressed", String(btn.dataset.ui === mode));
     }
     if (mode === "view") this.closeMenus();
+  }
+
+  /** 보유 체크 모드 켜짐/꺼짐 — 켜져 있을 때만 "전부 보유 / 전부 미보유"가 보인다. */
+  setOwnedMode(on) {
+    const btn = this.el.querySelector('[data-action="owned-mode"]');
+    btn.classList.toggle("active", on);
+    btn.setAttribute("aria-pressed", String(on));
+    this.el.querySelector(".owned-group").classList.toggle("on", on);
   }
 
   setSaveState(text) {
