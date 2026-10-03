@@ -26,7 +26,7 @@ export class DeckRenderer {
     this.onAction = onAction;
     this.onSelect = onSelect;
     this.onMove = onMove; // 드래그 중(모델 이벤트 없이 직접 옮기는 동안) 관계선을 따라오게 하는 데 씀
-    this.onToggleOwned = onToggleOwned; // 보유 체크 모드에서 리스트 장수 칸을 누를 때(이름)
+    this.onToggleOwned = onToggleOwned; // 보유 체크 모드에서 리스트 장수·전법 칸을 누를 때(종류, 이름)
 
     this.boardEls = new Map(); // deckId -> element
     this.boardDrags = new Map(); // deckId -> DragController(헤더)
@@ -38,9 +38,9 @@ export class DeckRenderer {
     // 리스트에서 누른 장수/전법 — { type: "general" | "tactic", key: generalKey(이름) } | null.
     // 같은 이름의 장수 칸 / 전법 칸을 보드 전체에서 강조한다.
     this.highlight = null;
-    // 보유한 장수(generalKey 이름 Set) — 이 브라우저에만 저장(main.js). 보유 체크 모드에서는 리스트의
-    // 장수 칸을 누르면 강조 대신 보유를 켜고 끈다.
-    this.owned = new Set();
+    // 보유한 장수·전법 { general: Set, tactic: Set }(generalKey 이름) — 이 브라우저에만 저장(main.js).
+    // 보유 체크 모드에서는 리스트의 장수·전법 칸을 누르면 강조 대신 보유를 켜고 끈다.
+    this.owned = { general: new Set(), tactic: new Set() };
     this.ownedMode = false;
 
     // 표시 단계·수정/보기 전환마다 "그 화면에서의 덱 y 위치"를 기억해 둔다(키: _layoutKey()) — 많이로
@@ -96,7 +96,7 @@ export class DeckRenderer {
       onInput: (path, value) => this.editable && this.onInput(deck.id, path, value),
       onAction: (act, ctx) => this.editable && this.onAction(deck.id, act, ctx),
       onHighlight: (type, name, opts) => {
-        if (this.ownedMode && type === "general") this.onToggleOwned?.(name);
+        if (this.ownedMode) this.onToggleOwned?.(type, name);
         else this.toggleHighlight(type, name, opts);
       },
     };
@@ -201,7 +201,7 @@ export class DeckRenderer {
     this._applyOwned(el, deck);
   }
 
-  // ---------- 보유 장수(연두색 테두리) ----------
+  // ---------- 보유 장수·전법(연두색 테두리) ----------
 
   setOwned(owned) {
     this.owned = owned;
@@ -211,18 +211,29 @@ export class DeckRenderer {
     }
   }
 
-  /** 보유한 장수 칸(리스트)·장수 카드(덱)에 .owned, 장수 3명을 모두 보유한 덱에 .all-owned. */
+  /** 보유한 장수 칸(리스트)·장수 카드(덱)·전법 칸(대체 전법 줄 포함)에 .owned, 장수 3명을 모두 보유한 덱에
+   * .all-owned. 덱의 전법 1(그 장수의 고유 전법)은 장수를 보유했으면 보유로 친다. */
   _applyOwned(el, deck) {
-    const has = (name) => {
+    const has = (type, name) => {
       const key = generalKey(name);
-      return !!key && this.owned.has(key);
+      return !!key && this.owned[type].has(key);
     };
     if (deck.kind === "list") {
-      el.querySelectorAll(".list-general").forEach((item, i) => item.classList.toggle("owned", has(deck.listGenerals[i]?.name)));
+      el.querySelectorAll(".list-general").forEach((item, i) => item.classList.toggle("owned", has("general", deck.listGenerals[i]?.name)));
+      el.querySelectorAll(".list-tactic").forEach((item, i) => item.classList.toggle("owned", has("tactic", deck.listTactics[i])));
       return;
     }
-    el.querySelectorAll(".general-card").forEach((card, gi) => card.classList.toggle("owned", has(deck.generals[gi]?.name)));
-    el.classList.toggle("all-owned", deck.generals.length > 0 && deck.generals.every((g) => has(g.name)));
+    el.querySelectorAll(".general-card").forEach((card, gi) => {
+      const g = deck.generals[gi];
+      const genOwned = has("general", g?.name);
+      card.classList.toggle("owned", genOwned);
+      card.querySelectorAll(".tactic").forEach((tEl, ti) => {
+        const t = g?.tactics[ti];
+        tEl.classList.toggle("owned", (ti === 0 && genOwned && !!t?.text.trim()) || has("tactic", t?.text));
+        tEl.querySelectorAll(".tactic-alt-row").forEach((row, ai) => row.classList.toggle("owned", has("tactic", t?.alternatives[ai])));
+      });
+    });
+    el.classList.toggle("all-owned", deck.generals.length > 0 && deck.generals.every((g) => has("general", g.name)));
   }
 
   // ---------- 같은 장수/전법 강조(리스트의 장수·전법 칸을 누르면) ----------

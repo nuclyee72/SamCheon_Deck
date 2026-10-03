@@ -32,8 +32,8 @@ export class Toolbar {
         <button type="button" class="toggle" data-action="view-mode" data-mode="compact" title="장수만">적게</button>
       </div>
       <div class="toolbar-group owned-group">
-        <button type="button" class="toggle" data-action="owned-mode" title="켜고 리스트의 장수 칸을 누르면 보유/미보유 전환(이 브라우저에만 저장)">보유 체크</button>
-        <button type="button" class="owned-extra" data-action="owned-all" title="보드에 있는 장수를 전부 보유로">전부 보유</button>
+        <button type="button" class="toggle" data-action="owned-mode" title="켜고 리스트의 장수·전법 칸을 누르면 보유/미보유 전환(이 브라우저에만 저장)">보유 체크</button>
+        <button type="button" class="owned-extra" data-action="owned-all" title="보드에 있는 장수·전법을 전부 보유로">전부 보유</button>
         <button type="button" class="owned-extra" data-action="owned-none" title="보유 체크를 전부 해제">전부 미보유</button>
       </div>
       <div class="toolbar-group toolbar-fit-group">

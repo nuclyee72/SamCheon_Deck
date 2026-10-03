@@ -668,7 +668,7 @@
 }
 .list-add:hover { color: var(--accent); border-color: var(--accent); }
 
-/* 보유한 장수 — 리스트 장수 칸·덱 장수 카드, 장수 3명을 모두 보유한 덱은 덱 테두리까지 연두색.
+/* 보유한 장수·전법 — 리스트 장수 칸·덱 장수 카드, 장수 3명을 모두 보유한 덱은 덱 테두리까지 연두색.
    같은 장수 강조(.name-hl)가 아래에 있어 겹치면 강조가 이긴다. */
 .general-card.owned,
 .list-general.owned {
@@ -680,10 +680,16 @@
   box-shadow: 0 0 0 3px var(--owned), 0 4px 18px var(--panel-shadow);
 }
 
-/* 보유 체크 모드 — 리스트 장수 칸 어디를 눌러도(초상화·이름 포함) 보유 전환만 되게 */
+/* 전법 칸은 바깥 테두리선(outline)으로 — 전법 1·필수 전법의 노란 테두리는 그대로 보이고, 보기 모드에서
+   입력칸 box-shadow를 끄는 규칙에도 안 지워진다. */
+.deck-board .tactic.owned:not(.name-hl) .tactic-input,
+.deck-board .list-tactic.owned:not(.name-hl) .list-tactic-name,
+.deck-board .tactic-alt-row.owned:not(.name-hl) .tactic-alt-input { outline: 2px solid var(--owned); outline-offset: 0; }
+
+/* 보유 체크 모드 — 리스트 장수·전법 칸 어디를 눌러도(초상화·이름 포함) 보유 전환만 되게 */
 #app[data-owned-mode] .list-general .portrait-btn,
-#app[data-owned-mode] .list-general input { pointer-events: none; }
-#app[data-owned-mode] .list-general .list-item-remove,
+#app[data-owned-mode] .list-item input { pointer-events: none; }
+#app[data-owned-mode] .list-item .list-item-remove,
 #app[data-owned-mode] .list-general .portrait-remove { display: none; }
 #toolbar .owned-group:not(.on) .owned-extra { display: none; }
 

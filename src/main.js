@@ -59,7 +59,7 @@ const renderer = new DeckRenderer({
   onInput: (deckId, path, value) => model.setPath(deckId, path, value),
   onAction: handleDeckAction,
   onMove: () => relations?.refresh(),
-  onToggleOwned: (name) => toggleOwned(name),
+  onToggleOwned: (type, name) => toggleOwned(type, name),
 });
 
 // DeckRenderer보다 나중에 만들어야 한다 — 모델 변경 때 덱 DOM이 먼저 갱신된 뒤 선 끝점을 잰다.
@@ -135,40 +135,58 @@ function applyViewMode(mode) {
   toolbar.setViewMode(mode);
 }
 
-// ---------- 보유 장수 체크 — 이 브라우저에만 기억(공개 보기에서도) ----------
-// 장수 이름(generalKey) 목록이라 보드 데이터·게시본·실행취소와 상관없고, 같은 이름은 어느 리스트·덱에서나
-// 같이 보유로 보인다. 보유 체크 모드(툴바 "보유 체크")에서 리스트의 장수 칸을 누르면 켜고 끈다.
-const OWNED_KEY = "deck-owned-generals";
-let owned = new Set();
-try { owned = new Set(JSON.parse(localStorage.getItem(OWNED_KEY) || "[]").map(generalKey).filter(Boolean)); } catch { /* ignore */ }
+// ---------- 보유 장수·전법 체크 — 이 브라우저에만 기억(공개 보기에서도) ----------
+// 장수/전법 이름(generalKey) 목록이라 보드 데이터·게시본·실행취소와 상관없고, 같은 이름은 어느 리스트·덱에서나
+// 같이 보유로 보인다. 보유 체크 모드(툴바 "보유 체크")에서 리스트의 장수·전법 칸을 누르면 켜고 끈다.
+const OWNED_KEYS = { general: "deck-owned-generals", tactic: "deck-owned-tactics" };
+const owned = { general: new Set(), tactic: new Set() };
+for (const [type, key] of Object.entries(OWNED_KEYS)) {
+  try { owned[type] = new Set(JSON.parse(localStorage.getItem(key) || "[]").map(generalKey).filter(Boolean)); } catch { /* ignore */ }
+}
 renderer.setOwned(owned);
 
 function saveOwned() {
   renderer.setOwned(owned);
-  try { localStorage.setItem(OWNED_KEY, JSON.stringify([...owned])); } catch { /* 저장 안 돼도 표시는 됨 */ }
+  for (const [type, key] of Object.entries(OWNED_KEYS)) {
+    try { localStorage.setItem(key, JSON.stringify([...owned[type]])); } catch { /* 저장 안 돼도 표시는 됨 */ }
+  }
 }
 
-function toggleOwned(name) {
+/** type: "general" | "tactic" */
+function toggleOwned(type, name) {
   const key = generalKey(name);
-  if (!key) return;
-  if (owned.has(key)) owned.delete(key);
-  else owned.add(key);
+  if (!key || !owned[type]) return;
+  if (owned[type].has(key)) owned[type].delete(key);
+  else owned[type].add(key);
   saveOwned();
 }
 
-/** 전부 보유 = 보드(리스트·덱)에 있는 장수를 전부 보유로 / 전부 미보유 = 보유 체크를 전부 해제. */
+/** 전부 보유 = 보드(리스트·덱)에 있는 장수·전법(대체 전법 포함)을 전부 보유로 / 전부 미보유 = 체크를 전부 해제. */
 function setAllOwned(on) {
   if (on) {
-    const keys = new Set();
+    const gens = new Set();
+    const tactics = new Set();
     for (const d of model.decks.values()) {
-      for (const g of (d.kind === "list" ? d.listGenerals : d.generals) || []) keys.add(generalKey(g.name));
+      if (d.kind === "list") {
+        d.listGenerals.forEach((g) => gens.add(generalKey(g.name)));
+        d.listTactics.forEach((t) => tactics.add(generalKey(t)));
+      } else {
+        for (const g of d.generals) {
+          gens.add(generalKey(g.name));
+          for (const t of g.tactics) [t.text, ...t.alternatives].forEach((n) => tactics.add(generalKey(n)));
+        }
+      }
     }
-    keys.delete("");
-    if (!confirm(`보드에 있는 장수 ${keys.size}명을 전부 보유로 할까요?`)) return;
-    keys.forEach((k) => owned.add(k));
+    gens.delete("");
+    tactics.delete("");
+    if (!confirm(`보드에 있는 장수 ${gens.size}명, 전법 ${tactics.size}개를 전부 보유로 할까요?`)) return;
+    gens.forEach((k) => owned.general.add(k));
+    tactics.forEach((k) => owned.tactic.add(k));
   } else {
-    if (!owned.size || !confirm("보유 체크를 전부 해제할까요?")) return;
-    owned.clear();
+    if (!owned.general.size && !owned.tactic.size) return;
+    if (!confirm("보유 체크(장수·전법)를 전부 해제할까요?")) return;
+    owned.general.clear();
+    owned.tactic.clear();
   }
   saveOwned();
 }
