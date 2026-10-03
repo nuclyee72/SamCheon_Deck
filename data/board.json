@@ -1,497 +1,404 @@
 {
   "kind": "samguk-deck-board",
   "version": 1,
-  "exportedAt": "2026-10-02T17:29:36.427Z",
+  "exportedAt": "2026-10-03T03:21:41.417Z",
+  "updatedAt": 1790997701417,
   "decks": [
     {
-      "id": "7e92e323-cbdd-49bb-a890-e1ae6253f6c3",
+      "id": "5fc043b8-2962-4e94-8717-37da7400da16",
       "kind": "list",
-      "x": 3128.2415668263825,
-      "y": -304.47448140600864,
+      "x": 3270.980317802908,
+      "y": 116.6975767543633,
       "locked": false,
-      "season": "패업뽑",
+      "tint": null,
+      "season": "시즌 명장2",
       "listGenerals": [
         {
-          "name": "감자",
+          "name": "강유",
           "portraitId": null
         },
         {
-          "name": "",
+          "name": "관은병",
           "portraitId": null
         },
         {
-          "name": "",
+          "name": "보연사",
           "portraitId": null
         },
         {
-          "name": "",
+          "name": "순유",
           "portraitId": null
         },
         {
-          "name": "",
+          "name": "우길",
           "portraitId": null
         },
         {
-          "name": "",
+          "name": "장녕",
           "portraitId": null
         },
         {
-          "name": "",
+          "name": "주준",
           "portraitId": null
         },
         {
-          "name": "",
-          "portraitId": null
-        },
-        {
-          "name": "",
+          "name": "황보숭",
           "portraitId": null
         }
       ],
       "listTactics": [
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
-        ""
+        "기선제압",
+        "병기 파괴",
+        "사방의 매복",
+        "신체 개조",
+        "용의주도",
+        "지략 운용",
+        "침략 방어",
+        "황천의 선동"
+      ],
+      "createdAt": 1790997241312,
+      "updatedAt": 1790997701417
+    },
+    {
+      "id": "7e92e323-cbdd-49bb-a890-e1ae6253f6c3",
+      "kind": "list",
+      "x": 3270.980317802908,
+      "y": -304.47448140600864,
+      "locked": false,
+      "tint": null,
+      "season": "시즌 명장1",
+      "listGenerals": [
+        {
+          "name": "마등",
+          "portraitId": null
+        },
+        {
+          "name": "왕이",
+          "portraitId": null
+        },
+        {
+          "name": "원술",
+          "portraitId": null
+        },
+        {
+          "name": "장소",
+          "portraitId": null
+        },
+        {
+          "name": "장춘화",
+          "portraitId": null
+        },
+        {
+          "name": "조순",
+          "portraitId": null
+        },
+        {
+          "name": "좌자",
+          "portraitId": null
+        },
+        {
+          "name": "sp제갈량",
+          "portraitId": null
+        }
+      ],
+      "listTactics": [
+        "공성계",
+        "뛰어난 응변",
+        "만군 멸시",
+        "문무의 충신",
+        "보보위영",
+        "천군 격파",
+        "천하의 인재",
+        "훗날의 교훈"
       ],
       "createdAt": 1790960859852,
-      "updatedAt": 1790962172185
+      "updatedAt": 1790997701417
     },
     {
-      "id": "84becd26-3c4b-4995-a4b3-4c046669d280",
-      "kind": "deck",
-      "x": 1424.2415668263825,
+      "id": "e5d3967a-2446-499a-aa15-efde48054bbc",
+      "kind": "list",
+      "x": 3839.1652641890696,
       "y": -304.47448140600864,
       "locked": false,
-      "name": "덱 2",
-      "formation": "f-fish",
-      "notes": "",
-      "generals": [
+      "tint": null,
+      "season": "이전 시즌",
+      "listGenerals": [
         {
-          "name": "",
-          "portraitId": null,
-          "needsTally": false,
-          "troopType": "t-archer",
-          "troopTradition": null,
-          "tactics": [
-            {
-              "text": "",
-              "alternatives": [],
-              "required": false
-            },
-            {
-              "text": "",
-              "alternatives": [],
-              "required": false
-            },
-            {
-              "text": "",
-              "alternatives": [],
-              "required": false
-            }
-          ],
-          "arts": [
-            null,
-            null,
-            null
-          ],
-          "equipmentOptions": [
-            [],
-            []
-          ],
-          "mountOptions": [
-            [],
-            []
-          ],
-          "statChoice": null,
-          "statText": ""
+          "name": "감녕",
+          "portraitId": null
         },
         {
-          "name": "",
-          "portraitId": null,
-          "needsTally": false,
-          "troopType": "t-archer",
-          "troopTradition": null,
-          "tactics": [
-            {
-              "text": "",
-              "alternatives": [],
-              "required": false
-            },
-            {
-              "text": "",
-              "alternatives": [],
-              "required": false
-            },
-            {
-              "text": "",
-              "alternatives": [],
-              "required": false
-            }
-          ],
-          "arts": [
-            null,
-            null,
-            null
-          ],
-          "equipmentOptions": [
-            [],
-            []
-          ],
-          "mountOptions": [
-            [],
-            []
-          ],
-          "statChoice": null,
-          "statText": ""
+          "name": "견희",
+          "portraitId": null
         },
         {
-          "name": "",
-          "portraitId": null,
-          "needsTally": false,
-          "troopType": "t-cavalry",
-          "troopTradition": null,
-          "tactics": [
-            {
-              "text": "",
-              "alternatives": [],
-              "required": false
-            },
-            {
-              "text": "",
-              "alternatives": [],
-              "required": false
-            },
-            {
-              "text": "",
-              "alternatives": [],
-              "required": false
-            }
-          ],
-          "arts": [
-            null,
-            null,
-            null
-          ],
-          "equipmentOptions": [
-            [],
-            []
-          ],
-          "mountOptions": [
-            [],
-            []
-          ],
-          "statChoice": null,
-          "statText": ""
+          "name": "곽가",
+          "portraitId": null
+        },
+        {
+          "name": "관우",
+          "portraitId": null
+        },
+        {
+          "name": "관평",
+          "portraitId": null
+        },
+        {
+          "name": "노숙",
+          "portraitId": null
+        },
+        {
+          "name": "대교",
+          "portraitId": null
+        },
+        {
+          "name": "동탁",
+          "portraitId": null
+        },
+        {
+          "name": "등애",
+          "portraitId": null
+        },
+        {
+          "name": "마초",
+          "portraitId": null
+        },
+        {
+          "name": "문추",
+          "portraitId": null
+        },
+        {
+          "name": "방덕",
+          "portraitId": null
+        },
+        {
+          "name": "서서",
+          "portraitId": null
+        },
+        {
+          "name": "서성",
+          "portraitId": null
+        },
+        {
+          "name": "서황",
+          "portraitId": null
+        },
+        {
+          "name": "소교",
+          "portraitId": null
+        },
+        {
+          "name": "손견",
+          "portraitId": null
+        },
+        {
+          "name": "손권",
+          "portraitId": null
+        },
+        {
+          "name": "손상향",
+          "portraitId": null
+        },
+        {
+          "name": "손책",
+          "portraitId": null
+        },
+        {
+          "name": "순욱",
+          "portraitId": null
+        },
+        {
+          "name": "안량",
+          "portraitId": null
+        },
+        {
+          "name": "여몽",
+          "portraitId": null
+        },
+        {
+          "name": "여포",
+          "portraitId": null
+        },
+        {
+          "name": "우금",
+          "portraitId": null
+        },
+        {
+          "name": "원소",
+          "portraitId": null
+        },
+        {
+          "name": "유비",
+          "portraitId": null
+        },
+        {
+          "name": "이유",
+          "portraitId": null
+        },
+        {
+          "name": "장각",
+          "portraitId": null
+        },
+        {
+          "name": "장량",
+          "portraitId": null
+        },
+        {
+          "name": "장보",
+          "portraitId": null
+        },
+        {
+          "name": "장비",
+          "portraitId": null
+        },
+        {
+          "name": "장합",
+          "portraitId": null
+        },
+        {
+          "name": "전위",
+          "portraitId": null
+        },
+        {
+          "name": "정보",
+          "portraitId": null
+        },
+        {
+          "name": "정욱",
+          "portraitId": null
+        },
+        {
+          "name": "제갈량",
+          "portraitId": null
+        },
+        {
+          "name": "조운",
+          "portraitId": null
+        },
+        {
+          "name": "조인",
+          "portraitId": null
+        },
+        {
+          "name": "조조",
+          "portraitId": null
+        },
+        {
+          "name": "주유",
+          "portraitId": null
+        },
+        {
+          "name": "주창",
+          "portraitId": null
+        },
+        {
+          "name": "채문희",
+          "portraitId": null
+        },
+        {
+          "name": "초선",
+          "portraitId": null
+        },
+        {
+          "name": "추씨",
+          "portraitId": null
+        },
+        {
+          "name": "태사자",
+          "portraitId": null
+        },
+        {
+          "name": "하후돈",
+          "portraitId": null
+        },
+        {
+          "name": "하후연",
+          "portraitId": null
+        },
+        {
+          "name": "허저",
+          "portraitId": null
+        },
+        {
+          "name": "화웅",
+          "portraitId": null
+        },
+        {
+          "name": "화타",
+          "portraitId": null
+        },
+        {
+          "name": "황개",
+          "portraitId": null
+        },
+        {
+          "name": "황월영",
+          "portraitId": null
+        },
+        {
+          "name": "황충",
+          "portraitId": null
         }
       ],
-      "createdAt": 1790957411109,
-      "updatedAt": 1790959890543
-    },
-    {
-      "id": "b4c16c6f-74b1-4111-86cb-9187513c4128",
-      "kind": "deck",
-      "x": 572.2415668263825,
-      "y": -312.47448140600864,
-      "locked": false,
-      "name": "덱 1",
-      "formation": null,
-      "notes": "",
-      "generals": [
-        {
-          "name": "감자",
-          "portraitId": null,
-          "needsTally": false,
-          "troopType": null,
-          "troopTradition": null,
-          "tactics": [
-            {
-              "text": "",
-              "alternatives": [
-                "ㅁㄴㅇ",
-                "ㅁㄴㅇㅇㄹ"
-              ],
-              "required": false
-            },
-            {
-              "text": "ㅁㄴㅇㄹ",
-              "alternatives": [],
-              "required": false
-            },
-            {
-              "text": "",
-              "alternatives": [],
-              "required": false
-            }
-          ],
-          "arts": [
-            null,
-            null,
-            null
-          ],
-          "equipmentOptions": [
-            [],
-            []
-          ],
-          "mountOptions": [
-            [],
-            []
-          ],
-          "statChoice": null,
-          "statText": ""
-        },
-        {
-          "name": "",
-          "portraitId": null,
-          "needsTally": false,
-          "troopType": null,
-          "troopTradition": null,
-          "tactics": [
-            {
-              "text": "",
-              "alternatives": [],
-              "required": false
-            },
-            {
-              "text": "",
-              "alternatives": [],
-              "required": false
-            },
-            {
-              "text": "",
-              "alternatives": [],
-              "required": false
-            }
-          ],
-          "arts": [
-            null,
-            null,
-            null
-          ],
-          "equipmentOptions": [
-            [],
-            []
-          ],
-          "mountOptions": [
-            [],
-            []
-          ],
-          "statChoice": null,
-          "statText": ""
-        },
-        {
-          "name": "",
-          "portraitId": null,
-          "needsTally": false,
-          "troopType": null,
-          "troopTradition": null,
-          "tactics": [
-            {
-              "text": "",
-              "alternatives": [],
-              "required": false
-            },
-            {
-              "text": "",
-              "alternatives": [],
-              "required": false
-            },
-            {
-              "text": "",
-              "alternatives": [],
-              "required": false
-            }
-          ],
-          "arts": [
-            null,
-            null,
-            null
-          ],
-          "equipmentOptions": [
-            [],
-            []
-          ],
-          "mountOptions": [
-            [],
-            []
-          ],
-          "statChoice": null,
-          "statText": ""
-        }
+      "listTactics": [
+        "강철의 의지",
+        "견고한 방어",
+        "결사의 다짐",
+        "경무장",
+        "고요한 제압",
+        "광풍의 분노",
+        "구름과 바람",
+        "기문둔갑",
+        "기습 제압",
+        "무방비 공격",
+        "문무겸비",
+        "방화범",
+        "백전불태",
+        "보급 차단",
+        "세금 과징수",
+        "신속전개",
+        "압도적 승리",
+        "예리한 통찰",
+        "예리한 판단",
+        "예측의 신",
+        "용맹한 삼군",
+        "원문사극",
+        "인재 기용",
+        "일인천군",
+        "재해 이용",
+        "전략 계획",
+        "전력 지원",
+        "정의의 희생",
+        "준비 완료",
+        "찬란한 위명",
+        "창고 기습",
+        "천군 소탕",
+        "천리기습",
+        "천하평론",
+        "철기병 돌격",
+        "청낭 치료",
+        "청천벽력",
+        "청풍 질주",
+        "최상의 지략",
+        "출기불의",
+        "충신의 기재",
+        "칠군수몰",
+        "퇴로 매복",
+        "파죽지세",
+        "팔방전",
+        "포위 돌파",
+        "허점 공격",
+        "화공전술"
       ],
-      "createdAt": 1790957317177,
-      "updatedAt": 1790960898510
-    },
-    {
-      "id": "cd5d32be-2917-46fc-9ee2-ba4eba57d0a1",
-      "kind": "deck",
-      "x": 2276.2415668263825,
-      "y": -304.47448140600864,
-      "locked": false,
-      "name": "",
-      "formation": null,
-      "notes": "",
-      "generals": [
-        {
-          "name": "",
-          "portraitId": null,
-          "needsTally": false,
-          "troopType": null,
-          "troopTradition": null,
-          "tactics": [
-            {
-              "text": "",
-              "alternatives": [],
-              "required": false
-            },
-            {
-              "text": "",
-              "alternatives": [],
-              "required": false
-            },
-            {
-              "text": "",
-              "alternatives": [],
-              "required": false
-            }
-          ],
-          "arts": [
-            null,
-            null,
-            null
-          ],
-          "equipmentOptions": [
-            [],
-            []
-          ],
-          "mountOptions": [
-            [],
-            []
-          ],
-          "statChoice": null,
-          "statText": ""
-        },
-        {
-          "name": "",
-          "portraitId": null,
-          "needsTally": false,
-          "troopType": null,
-          "troopTradition": null,
-          "tactics": [
-            {
-              "text": "",
-              "alternatives": [],
-              "required": false
-            },
-            {
-              "text": "",
-              "alternatives": [],
-              "required": false
-            },
-            {
-              "text": "",
-              "alternatives": [],
-              "required": false
-            }
-          ],
-          "arts": [
-            null,
-            null,
-            null
-          ],
-          "equipmentOptions": [
-            [],
-            []
-          ],
-          "mountOptions": [
-            [],
-            []
-          ],
-          "statChoice": null,
-          "statText": ""
-        },
-        {
-          "name": "",
-          "portraitId": null,
-          "needsTally": false,
-          "troopType": null,
-          "troopTradition": null,
-          "tactics": [
-            {
-              "text": "",
-              "alternatives": [],
-              "required": false
-            },
-            {
-              "text": "",
-              "alternatives": [],
-              "required": false
-            },
-            {
-              "text": "",
-              "alternatives": [],
-              "required": false
-            }
-          ],
-          "arts": [
-            null,
-            null,
-            null
-          ],
-          "equipmentOptions": [
-            [],
-            []
-          ],
-          "mountOptions": [
-            [],
-            []
-          ],
-          "statChoice": null,
-          "statText": ""
-        }
-      ],
-      "createdAt": 1790959204997,
-      "updatedAt": 1790959204997
+      "createdAt": 1790997332418,
+      "updatedAt": 1790997701417
     }
   ],
-  "relations": [
-    {
-      "id": "adf3206c-8a64-4689-9125-2edc60475ca2",
-      "fromId": "b4c16c6f-74b1-4111-86cb-9187513c4128",
-      "toId": "84becd26-3c4b-4995-a4b3-4c046669d280",
-      "type": "arrow",
-      "template": "counter",
-      "label": "카운터",
-      "color": "#d64545",
-      "lineStyle": "solid",
-      "bidirectional": false
-    },
-    {
-      "id": "c1a1aaa3-fb20-4b41-8911-64d5807409e2",
-      "fromId": "cd5d32be-2917-46fc-9ee2-ba4eba57d0a1",
-      "toId": "84becd26-3c4b-4995-a4b3-4c046669d280",
-      "type": "arrow",
-      "template": "counter",
-      "label": "카운터",
-      "color": "#d64545",
-      "lineStyle": "solid",
-      "bidirectional": false
-    }
-  ],
+  "relations": [],
   "view": {
-    "panX": -57.92688877974683,
-    "panY": 370.23669117181305,
-    "scale": 0.25675675675675674
+    "panX": -2385.4480653197165,
+    "panY": 326.4225169033541,
+    "scale": 0.7662324201079374
   },
   "images": {}
 }
