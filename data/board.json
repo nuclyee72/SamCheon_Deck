@@ -1,14 +1,14 @@
 {
   "kind": "samguk-deck-board",
   "version": 1,
-  "exportedAt": "2026-10-03T03:21:41.417Z",
-  "updatedAt": 1790997701417,
+  "exportedAt": "2026-10-03T05:48:18.195Z",
+  "updatedAt": 1791006019665,
   "decks": [
     {
       "id": "5fc043b8-2962-4e94-8717-37da7400da16",
       "kind": "list",
-      "x": 3270.980317802908,
-      "y": 116.6975767543633,
+      "x": 3256.689954849216,
+      "y": 128.52551859399136,
       "locked": false,
       "tint": null,
       "season": "시즌 명장2",
@@ -62,7 +62,7 @@
     {
       "id": "7e92e323-cbdd-49bb-a890-e1ae6253f6c3",
       "kind": "list",
-      "x": 3270.980317802908,
+      "x": 3256.689954849216,
       "y": -304.47448140600864,
       "locked": false,
       "tint": null,
@@ -115,13 +115,109 @@
       "updatedAt": 1790997701417
     },
     {
-      "id": "e5d3967a-2446-499a-aa15-efde48054bbc",
+      "id": "9c1ad3df-0291-4267-94fc-191dc9ae7086",
       "kind": "list",
-      "x": 3839.1652641890696,
+      "x": 3838.689954849216,
       "y": -304.47448140600864,
       "locked": false,
       "tint": null,
-      "season": "이전 시즌",
+      "season": "S 시즌 명장1",
+      "listGenerals": [
+        {
+          "name": "가후",
+          "portraitId": null
+        },
+        {
+          "name": "마운록",
+          "portraitId": null
+        },
+        {
+          "name": "법정",
+          "portraitId": null
+        },
+        {
+          "name": "육손",
+          "portraitId": null
+        },
+        {
+          "name": "장료",
+          "portraitId": null
+        },
+        {
+          "name": "전풍",
+          "portraitId": null
+        },
+        {
+          "name": "진궁",
+          "portraitId": null
+        }
+      ],
+      "listTactics": [
+        "난공불락",
+        "도광양회",
+        "삼군 압도",
+        "연전연승",
+        "요새 함락",
+        "음과 양",
+        "적재적소",
+        "틈새 공략"
+      ],
+      "createdAt": 1791005733584,
+      "updatedAt": 1791005865272
+    },
+    {
+      "id": "b87fd884-7d55-4b1c-a886-071fe9296f9f",
+      "kind": "list",
+      "x": 3838.6899548492165,
+      "y": 128.52551859399136,
+      "locked": false,
+      "tint": null,
+      "season": "S 시즌 명장2",
+      "listGenerals": [
+        {
+          "name": "감부인",
+          "portraitId": null
+        },
+        {
+          "name": "공손찬",
+          "portraitId": null
+        },
+        {
+          "name": "방통",
+          "portraitId": null
+        },
+        {
+          "name": "사마의",
+          "portraitId": null
+        },
+        {
+          "name": "악진",
+          "portraitId": null
+        },
+        {
+          "name": "주태",
+          "portraitId": null
+        }
+      ],
+      "listTactics": [
+        "금성의 철벽",
+        "기민한 전술",
+        "맹렬한 화염",
+        "병력 강화",
+        "일심협력",
+        "허실 간파"
+      ],
+      "createdAt": 1791005900682,
+      "updatedAt": 1791006019663
+    },
+    {
+      "id": "e5d3967a-2446-499a-aa15-efde48054bbc",
+      "kind": "list",
+      "x": 4420.6899548492165,
+      "y": -304.47448140600864,
+      "locked": false,
+      "tint": null,
+      "season": "시즌1",
       "listGenerals": [
         {
           "name": "감녕",
@@ -391,14 +487,14 @@
         "화공전술"
       ],
       "createdAt": 1790997332418,
-      "updatedAt": 1790997701417
+      "updatedAt": 1791005616948
     }
   ],
   "relations": [],
   "view": {
-    "panX": -2385.4480653197165,
-    "panY": 326.4225169033541,
-    "scale": 0.7662324201079374
+    "panX": -1404.4539787541962,
+    "panY": 186.11698819601668,
+    "scale": 0.4650264550264542
   },
   "images": {}
 }
