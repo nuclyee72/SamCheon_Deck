@@ -213,29 +213,37 @@ export class DeckRenderer {
     }
   }
 
-  /** 보유한 장수 칸(리스트)·장수 카드(덱)·전법 칸(대체 전법 줄 포함)에 .owned, 장수 3명을 모두 보유한 덱에
-   * .all-owned. 덱의 전법 1(그 장수의 고유 전법)은 장수를 보유했으면 보유로 친다. */
+  /** 보유한 장수 칸(리스트)·장수 카드(덱)·전법 칸(대체 전법 줄 포함)에 .owned, 이름은 있는데 보유하지 않은
+   * 칸에 .unowned(빨간 테두리), 장수 3명을 모두 보유한 덱에 .all-owned. 덱의 전법 1(그 장수의 고유 전법)은
+   * 장수를 보유했으면 보유로 친다. 미보유 표시는 그 종류(장수/전법)를 하나라도 체크한 사람에게만 —
+   * 보유 체크를 안 쓰는 사람에게까지 전부 빨갛게 보이지 않게. */
   _applyOwned(el, deck) {
-    const has = (type, name) => {
+    const state = (type, name, ownedAnyway = false) => {
       const key = generalKey(name);
-      return !!key && this.owned[type].has(key);
+      if (!key) return null;
+      if (ownedAnyway || this.owned[type].has(key)) return "owned";
+      return this.owned[type].size ? "unowned" : null;
+    };
+    const mark = (node, st) => {
+      node.classList.toggle("owned", st === "owned");
+      node.classList.toggle("unowned", st === "unowned");
     };
     if (deck.kind === "list") {
-      el.querySelectorAll(".list-general").forEach((item, i) => item.classList.toggle("owned", has("general", deck.listGenerals[i]?.name)));
-      el.querySelectorAll(".list-tactic").forEach((item, i) => item.classList.toggle("owned", has("tactic", deck.listTactics[i])));
+      el.querySelectorAll(".list-general").forEach((item, i) => mark(item, state("general", deck.listGenerals[i]?.name)));
+      el.querySelectorAll(".list-tactic").forEach((item, i) => mark(item, state("tactic", deck.listTactics[i])));
       return;
     }
     el.querySelectorAll(".general-card").forEach((card, gi) => {
       const g = deck.generals[gi];
-      const genOwned = has("general", g?.name);
-      card.classList.toggle("owned", genOwned);
+      const genState = state("general", g?.name);
+      mark(card, genState);
       card.querySelectorAll(".tactic").forEach((tEl, ti) => {
         const t = g?.tactics[ti];
-        tEl.classList.toggle("owned", (ti === 0 && genOwned && !!t?.text.trim()) || has("tactic", t?.text));
-        tEl.querySelectorAll(".tactic-alt-row").forEach((row, ai) => row.classList.toggle("owned", has("tactic", t?.alternatives[ai])));
+        mark(tEl, state("tactic", t?.text, ti === 0 && genState === "owned"));
+        tEl.querySelectorAll(".tactic-alt-row").forEach((row, ai) => mark(row, state("tactic", t?.alternatives[ai])));
       });
     });
-    el.classList.toggle("all-owned", deck.generals.length > 0 && deck.generals.every((g) => has("general", g.name)));
+    el.classList.toggle("all-owned", deck.generals.length > 0 && deck.generals.every((g) => state("general", g.name) === "owned"));
   }
 
   // ---------- 같은 장수/전법 강조(리스트의 장수·전법 칸을 누르면) ----------

@@ -13,7 +13,8 @@
   --tint-blue: #e0e9fb;
   --tint-purple: #ece3fa;
   --tint-gray: #e8ebef;
-  --owned: #7cc63d; /* 보유한 장수 테두리(연두) */
+  --owned: #b6e388; /* 보유한 장수·전법 테두리(연한 연두) */
+  --unowned: #f2a7a7; /* 보유 체크를 쓰는 사람에게 미보유 테두리(연한 빨강) */
 }
 
 :root[data-theme="dark"] {
@@ -26,7 +27,8 @@
   --tint-blue: #1f2b42;
   --tint-purple: #2d2541;
   --tint-gray: #2b3038;
-  --owned: #8fd650;
+  --owned: #5f8f3a;
+  --unowned: #9a4848;
 }
 
 /* ---------- 캔버스 ---------- */
@@ -669,11 +671,16 @@
 .list-add:hover { color: var(--accent); border-color: var(--accent); }
 
 /* 보유한 장수·전법 — 리스트 장수 칸·덱 장수 카드, 장수 3명을 모두 보유한 덱은 덱 테두리까지 연두색.
-   같은 장수 강조(.name-hl)가 아래에 있어 겹치면 강조가 이긴다. */
+   미보유(.unowned)는 연한 빨강. 같은 장수 강조(.name-hl)가 아래에 있어 겹치면 강조가 이긴다. */
 .general-card.owned,
 .list-general.owned {
   border-color: var(--owned);
   box-shadow: 0 0 0 2px var(--owned);
+}
+.general-card.unowned,
+.list-general.unowned {
+  border-color: var(--unowned);
+  box-shadow: 0 0 0 2px var(--unowned);
 }
 .deck-board.all-owned:not(.selected) {
   border-color: var(--owned);
@@ -685,6 +692,9 @@
 .deck-board .tactic.owned:not(.name-hl) .tactic-input,
 .deck-board .list-tactic.owned:not(.name-hl) .list-tactic-name,
 .deck-board .tactic-alt-row.owned:not(.name-hl) .tactic-alt-input { outline: 2px solid var(--owned); outline-offset: 0; }
+.deck-board .tactic.unowned:not(.name-hl) .tactic-input,
+.deck-board .list-tactic.unowned:not(.name-hl) .list-tactic-name,
+.deck-board .tactic-alt-row.unowned:not(.name-hl) .tactic-alt-input { outline: 2px solid var(--unowned); outline-offset: 0; }
 
 /* 보유 체크 모드 — 리스트 장수·전법 칸 어디를 눌러도(초상화·이름 포함) 보유 전환만 되게 */
 #app[data-owned-mode] .list-general .portrait-btn,
