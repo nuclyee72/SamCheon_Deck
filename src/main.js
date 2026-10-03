@@ -84,7 +84,7 @@ const toolbar = new Toolbar(toolbarEl, {
   },
   exportBoard,
   exportPublished,
-  loadPublishedBoard,
+  loadPublished: loadPublishedBoard,
   import: importFile,
   viewMode: (mode) => applyViewMode(mode),
   uiMode: (mode) => applyUiMode(mode),
