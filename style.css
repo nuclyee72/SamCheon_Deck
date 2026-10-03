@@ -600,7 +600,8 @@
 .tactic-alt-add:hover { color: var(--accent); border-color: var(--accent); }
 
 /* ---------- 리스트 템플릿(ListBoard) ----------
-   [⠿ 시즌(덱 이름 크기) …… ⋯] / ─ 장수 목록(한 줄 6칸, 맨 끝 +) / ─ 전법 목록(한 줄 6칸, 맨 끝 +) */
+   [⠿ 시즌(덱 이름 크기) …… ⋯] / ─ 장수 목록(한 줄 6칸, 맨 끝 +) / ─ 전법 목록(한 줄 4칸, 맨 끝 +) —
+   전법은 이름이 길어서 글씨를 키우려면 칸이 넓어야 한다. */
 .list-section {
   border-top: 1px solid var(--border);
   padding-top: 8px;
@@ -626,14 +627,15 @@
 .list-general .portrait { width: 100%; height: auto; aspect-ratio: 1; }
 .list-general .portrait-btn { border-radius: 10px; }
 .deck-board .list-general-name {
-  font-size: 11.5px;
+  font-size: 14px;
   font-weight: 700;
   text-align: center;
   padding: 3px 2px;
 }
+.list-tactics { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .deck-board .list-tactic-name {
-  font-size: 11.5px;
-  padding: 5px 6px;
+  font-size: 14px;
+  padding: 6px 8px;
 }
 
 /* 칸 빼기 × — 마우스를 올리면 칸 오른쪽 위에 */
