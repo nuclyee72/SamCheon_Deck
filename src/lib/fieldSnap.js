@@ -24,6 +24,7 @@ export function rectCollides(rects, width, height, x, y, excludeIds) {
  * 간격)에도 스냅한다. threshold는 월드 좌표 기준(호출자가 화면 px / camera.scale로 넘김).
  * gap을 주면 "상대 테두리에서 그만큼 띄운 테두리"(내 왼쪽 = 상대 오른쪽 + gap 등)에도 스냅한다 —
  * 중심 기준인 colSpacing/rowSpacing과 달리 두 사각형 크기가 달라도 띄운 간격이 정확히 gap이다.
+ * gap은 숫자 하나 또는 여러 간격의 배열([300, 30]처럼)이다.
  * topOnly: 세로 정렬을 위쪽 테두리끼리만 한다 — 덱처럼 내용에 따라 높이가 제각각이면 아래쪽·
  * 가운데 정렬선이 위쪽 정렬과 가까이 붙어 경쟁해서 엉뚱한 데 붙는다.
  * excludeIds: 그룹 드래그 중 같이 끌려가는 다른 필드처럼 후보로 부적절한 것.
@@ -33,6 +34,7 @@ export function rectCollides(rects, width, height, x, y, excludeIds) {
 export function computeRectSnap(rects, rawX, rawY, rect, { threshold, colSpacing = null, rowSpacing = null, gap = null, topOnly = false, excludeIds = null }) {
   const w = rect.width;
   const h = rect.height;
+  const gaps = gap == null ? [] : [].concat(gap);
 
   let bestX = null, bestXDist = threshold, guideX = null, bestXAnchor = null;
   let bestY = null, bestYDist = threshold, guideY = null, bestYAnchor = null;
@@ -90,7 +92,7 @@ export function computeRectSnap(rects, rawX, rawY, rect, { threshold, colSpacing
         }
       }
     }
-    if (gap != null) {
+    for (const gap of gaps) {
       // 상대 오른쪽(아래쪽)에 붙이기 / 왼쪽(위쪽)에 붙이기 — 안내선은 상대 중심에서 ㄱ자로.
       for (const targetX of [other.x + other.width + gap, other.x - gap - w]) {
         const dx = targetX - rawX;

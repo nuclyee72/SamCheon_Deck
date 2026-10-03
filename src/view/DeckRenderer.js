@@ -9,6 +9,8 @@ const SNAP_THRESHOLD_PX = 14; // 가계도 TreeRenderer와 같은 화면 기준 
 // 정렬선 외에 "옆 덱에서 이만큼 띄운 자리"에도 스냅(나란히 늘어놓기 편하게). 사이에 관계선·라벨이
 // 들어갈 자리가 있게 넉넉히 — 새 덱/복제본을 놓을 때(main.js)도 같은 간격을 쓴다.
 export const DECK_GAP = 300;
+// 드래그 스냅에만 쓰는 좁은 간격 — 관계선 없이 바짝(조금만 띄워) 붙여 놓고 싶을 때.
+const DECK_GAP_NEAR = 30;
 
 /**
  * DeckModel → DOM 동기화 + 덱 필드 드래그(헤더로만)·정렬 스냅·겹침 방지·휴지통 삭제.
@@ -400,7 +402,7 @@ export class DeckRenderer {
       threshold: SNAP_THRESHOLD_PX / this.camera.scale,
       // 덱 높이는 안의 내용(장비 칩 줄바꿈 등)에 따라 제각각이라 중심 기준 간격 대신 테두리 기준 간격,
       // 세로 정렬은 위쪽끼리만.
-      gap: DECK_GAP,
+      gap: [DECK_GAP, DECK_GAP_NEAR],
       topOnly: true,
     });
     let nx = snapped.x, ny = snapped.y;
