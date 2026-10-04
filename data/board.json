@@ -1,29 +1,86 @@
 {
   "kind": "samguk-deck-board",
   "version": 1,
-  "exportedAt": "2026-10-03T07:30:30.054Z",
-  "updatedAt": 1791012402550,
+  "exportedAt": "2026-10-04T04:09:22.474Z",
+  "updatedAt": 1791086955419,
   "decks": [
     {
-      "id": "2c83749f-cdef-4dd1-89c3-a783d0acf215",
-      "kind": "deck",
-      "x": 2674.689954849216,
-      "y": -304.47448140600864,
+      "id": "0be431c3-ddba-456c-9bcf-ad535d26244e",
+      "kind": "text",
+      "x": -911.750797480199,
+      "y": 1968.3469339093283,
       "locked": false,
       "tint": null,
-      "name": "개척 좌전장 ",
-      "formation": "f-gi",
+      "text": "연의 3",
+      "fontSize": 40,
+      "width": 219,
+      "height": 69,
+      "background": true,
+      "fieldId": "9a089f93-fb15-471b-8163-a48c19dc6500",
+      "createdAt": 1791083963718,
+      "updatedAt": 1791083969085
+    },
+    {
+      "id": "0ea769ab-6146-41c5-8c19-ffc9e02446ed",
+      "kind": "deck",
+      "x": 587.4594259910757,
+      "y": 1439.5255185939914,
+      "locked": false,
+      "tint": null,
+      "name": "조순이",
+      "formation": "f-square",
       "notes": "",
       "generals": [
         {
-          "name": "좌자",
+          "name": "조조",
           "portraitId": null,
           "needsTally": false,
+          "yeonui": false,
           "troopType": "t-shield",
           "troopTradition": null,
           "tactics": [
             {
-              "text": "우천의 흑운",
+              "text": "공성계",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "기선제압",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "순욱",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-archer",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "훗날의 교훈",
               "alternatives": [],
               "required": false
             },
@@ -31,55 +88,6 @@
               "text": "침략 방어",
               "alternatives": [],
               "required": false
-            },
-            {
-              "text": "금성의 철벽",
-              "alternatives": [],
-              "required": false
-            }
-          ],
-          "arts": [
-            "custom",
-            null,
-            null
-          ],
-          "artTexts": [
-            "",
-            "",
-            ""
-          ],
-          "equipmentOptions": [
-            [],
-            []
-          ],
-          "mountOptions": [
-            [],
-            []
-          ],
-          "statChoice": null,
-          "statText": ""
-        },
-        {
-          "name": "전풍",
-          "portraitId": null,
-          "needsTally": false,
-          "troopType": "t-archer",
-          "troopTradition": null,
-          "tactics": [
-            {
-              "text": "지략 방어",
-              "alternatives": [],
-              "required": false
-            },
-            {
-              "text": "전략 계획",
-              "alternatives": [],
-              "required": false
-            },
-            {
-              "text": "예측의 신",
-              "alternatives": [],
-              "required": false
             }
           ],
           "arts": [
@@ -104,24 +112,20 @@
           "statText": ""
         },
         {
-          "name": "장녕",
+          "name": "왕이",
           "portraitId": null,
           "needsTally": false,
-          "troopType": "t-archer",
+          "yeonui": false,
+          "troopType": "t-spear",
           "troopTradition": null,
           "tactics": [
             {
-              "text": "태평의 여운",
+              "text": "지략 운용",
               "alternatives": [],
               "required": false
             },
             {
-              "text": "허실 간파",
-              "alternatives": [],
-              "required": false
-            },
-            {
-              "text": "황천의 선동",
+              "text": "용의주도",
               "alternatives": [],
               "required": false
             }
@@ -148,8 +152,729 @@
           "statText": ""
         }
       ],
-      "createdAt": 1791006688045,
-      "updatedAt": 1791009083367
+      "fieldId": null,
+      "createdAt": 1791081061904,
+      "updatedAt": 1791081151032
+    },
+    {
+      "id": "11bda3f2-942c-443f-ad50-e431102867b2",
+      "kind": "deck",
+      "x": 2470.301975326842,
+      "y": 528.7396086523083,
+      "locked": false,
+      "tint": null,
+      "name": "반격 신화창",
+      "formation": "f-awl",
+      "notes": "",
+      "generals": [
+        {
+          "name": "유비",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-shield",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "보보위영",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "결사의 다짐",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "강유",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-spear",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "연전연승",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "병력 강화",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "sp제갈량",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-shield",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "침략 방어",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "백전불태",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        }
+      ],
+      "fieldId": "6da33257-5411-45a0-90a9-fb95333f2cd4",
+      "createdAt": 1791080942881,
+      "updatedAt": 1791081055696
+    },
+    {
+      "id": "17f4c535-741c-4ed9-b920-25ff9e360a5c",
+      "kind": "deck",
+      "x": -324.5405740089243,
+      "y": 2067.346933909328,
+      "locked": false,
+      "tint": null,
+      "name": "",
+      "formation": null,
+      "notes": "",
+      "generals": [
+        {
+          "name": "",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": null,
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": null,
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": null,
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        }
+      ],
+      "fieldId": "9a089f93-fb15-471b-8163-a48c19dc6500",
+      "createdAt": 1791083963723,
+      "updatedAt": 1791083963723
+    },
+    {
+      "id": "1e51bf06-d075-484d-a4ab-9ac0b07ac2d4",
+      "kind": "field",
+      "x": -115,
+      "y": -1059,
+      "locked": false,
+      "tint": null,
+      "width": 1254,
+      "height": 520,
+      "createdAt": 1791085548645,
+      "updatedAt": 1791085548645
+    },
+    {
+      "id": "2d5c45ce-069b-434a-b9a7-2063decd743b",
+      "kind": "field",
+      "x": -967,
+      "y": 450,
+      "locked": false,
+      "tint": null,
+      "width": 1254,
+      "height": 851,
+      "createdAt": 1791083629638,
+      "updatedAt": 1791083629638
+    },
+    {
+      "id": "32d7df3f-89d0-4e54-a529-0348ecb80bcc",
+      "kind": "text",
+      "x": -906.5405740089243,
+      "y": 510.1736983189673,
+      "locked": false,
+      "tint": null,
+      "text": "연의 1",
+      "fontSize": 40,
+      "width": 219,
+      "height": 69,
+      "background": true,
+      "fieldId": "2d5c45ce-069b-434a-b9a7-2063decd743b",
+      "createdAt": 1791083638642,
+      "updatedAt": 1791083658141
+    },
+    {
+      "id": "41ec6706-0ce3-4b3f-b61c-4ec4ee9e1b30",
+      "kind": "deck",
+      "x": -54.540574008924295,
+      "y": -899.5543565261646,
+      "locked": false,
+      "tint": null,
+      "name": "공마마",
+      "formation": "f-gu",
+      "notes": "추격덱 - 고돌 추천",
+      "generals": [
+        {
+          "name": "마운록",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-cavalry",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "예리한 통찰",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "철기병 돌격",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "공손찬",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": true,
+          "troopType": "t-cavalry",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "지략 운용",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "신속전개",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "마등",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-cavalry",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "기선제압",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "정의의 희생",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        }
+      ],
+      "fieldId": "1e51bf06-d075-484d-a4ab-9ac0b07ac2d4",
+      "createdAt": 1791079335704,
+      "updatedAt": 1791080320027
+    },
+    {
+      "id": "4a69c829-d5a8-4da8-8565-418574a5780b",
+      "kind": "deck",
+      "x": 2470.301975326842,
+      "y": 1902.9619323260354,
+      "locked": false,
+      "tint": null,
+      "name": "선등 하후연",
+      "formation": "f-moon",
+      "notes": "",
+      "generals": [
+        {
+          "name": "하후연",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-cavalry",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "철기병 돌격",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "신속전개",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "마등",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-cavalry",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "기선제압",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "정의의 희생",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "악진",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-spear",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "팔방전",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "강철의 의지",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        }
+      ],
+      "fieldId": null,
+      "createdAt": 1791080055395,
+      "updatedAt": 1791080566819
+    },
+    {
+      "id": "4d90c8de-afb5-4f95-9246-d79b81633289",
+      "kind": "deck",
+      "x": 2470.301975326842,
+      "y": 1439.5255185939914,
+      "locked": false,
+      "tint": null,
+      "name": "관제마",
+      "formation": "f-goose",
+      "notes": "",
+      "generals": [
+        {
+          "name": "마초",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-cavalry",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "요새 함락",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "연전연승",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "sp제갈량",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-shield",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "침략 방어",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "기선제압",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "관은병",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-cavalry",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "팔방전",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "천하평론",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        }
+      ],
+      "fieldId": null,
+      "createdAt": 1791079917620,
+      "updatedAt": 1791082977285
     },
     {
       "id": "5fc043b8-2962-4e94-8717-37da7400da16",
@@ -203,8 +928,299 @@
         "침략 방어",
         "황천의 선동"
       ],
+      "fieldId": null,
       "createdAt": 1790997241312,
       "updatedAt": 1791011798135
+    },
+    {
+      "id": "6da33257-5411-45a0-90a9-fb95333f2cd4",
+      "kind": "field",
+      "x": 2410,
+      "y": -299,
+      "locked": false,
+      "tint": null,
+      "width": 672,
+      "height": 1189,
+      "createdAt": 1791083741285,
+      "updatedAt": 1791083741285
+    },
+    {
+      "id": "7158f4fe-eb27-49bd-937b-054971330232",
+      "kind": "deck",
+      "x": 2470.301975326842,
+      "y": 1013.9619323260354,
+      "locked": false,
+      "tint": null,
+      "name": "조감강",
+      "formation": "f-awl",
+      "notes": "",
+      "generals": [
+        {
+          "name": "감부인",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-archer",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "금성의 철벽",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "보보위영",
+              "alternatives": [
+                "허점 공략"
+              ],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "조운",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-cavalry",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "용맹한 삼군",
+              "alternatives": [
+                "예리한 통찰"
+              ],
+              "required": false
+            },
+            {
+              "text": "병력 강화",
+              "alternatives": [
+                "용맹한 삼군"
+              ],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "강유",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-spear",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "연전연승",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "침략 방어",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        }
+      ],
+      "fieldId": null,
+      "createdAt": 1791079936410,
+      "updatedAt": 1791080919398
+    },
+    {
+      "id": "7262ad20-a171-4210-912a-5ca8d18b776a",
+      "kind": "deck",
+      "x": -324.5405740089243,
+      "y": 609.1736983189674,
+      "locked": false,
+      "tint": null,
+      "name": "원손육",
+      "formation": "f-gi",
+      "notes": "",
+      "generals": [
+        {
+          "name": "원소",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": true,
+          "troopType": "t-archer",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "침략 방어",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "기선제압",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "손권",
+          "portraitId": null,
+          "needsTally": true,
+          "yeonui": false,
+          "troopType": "t-archer",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "팔방전",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "맹렬한 화염",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "육손",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-archer",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "허실 간파",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "연전연승",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        }
+      ],
+      "fieldId": "2d5c45ce-069b-434a-b9a7-2063decd743b",
+      "createdAt": 1791079419680,
+      "updatedAt": 1791080302792
     },
     {
       "id": "7e92e323-cbdd-49bb-a890-e1ae6253f6c3",
@@ -258,8 +1274,175 @@
         "천하의 인재",
         "훗날의 교훈"
       ],
+      "fieldId": null,
       "createdAt": 1790960859852,
       "updatedAt": 1791011792233
+    },
+    {
+      "id": "8f870f49-3de6-4404-ab4d-ed718316ec01",
+      "kind": "text",
+      "x": 527.4594259910757,
+      "y": -998.5543565261648,
+      "locked": false,
+      "tint": null,
+      "text": "추격계열",
+      "fontSize": 40,
+      "width": 219,
+      "height": 69,
+      "background": true,
+      "fieldId": "1e51bf06-d075-484d-a4ab-9ac0b07ac2d4",
+      "createdAt": 1791085554145,
+      "updatedAt": 1791085561150
+    },
+    {
+      "id": "9a089f93-fb15-471b-8163-a48c19dc6500",
+      "kind": "field",
+      "x": -972,
+      "y": 1908,
+      "locked": false,
+      "tint": null,
+      "width": 1259,
+      "height": 528,
+      "createdAt": 1791083963718,
+      "updatedAt": 1791083963718
+    },
+    {
+      "id": "9c08870c-0157-4d6d-bd0e-3ab77145dcd7",
+      "kind": "deck",
+      "x": 2470.301975326842,
+      "y": 197.59262606307186,
+      "locked": false,
+      "tint": null,
+      "name": "신화창 대체",
+      "formation": "f-goose",
+      "notes": "",
+      "generals": [
+        {
+          "name": "강유",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-spear",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "연전연승",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "문무겸비",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "sp제갈량",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-shield",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "침략 방어",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "기선제압",
+              "alternatives": [
+                "보보위영"
+              ],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "노숙",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-spear",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "신의 가호",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "천하평론",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        }
+      ],
+      "fieldId": "6da33257-5411-45a0-90a9-fb95333f2cd4",
+      "createdAt": 1791080396176,
+      "updatedAt": 1791080491625
     },
     {
       "id": "9c1ad3df-0291-4267-94fc-191dc9ae7086",
@@ -309,8 +1492,730 @@
         "적재적소",
         "틈새 공략"
       ],
+      "fieldId": null,
       "createdAt": 1791005733584,
       "updatedAt": 1791012080542
+    },
+    {
+      "id": "9fdf9423-3fe1-49c0-94ef-e5ff8ab846bf",
+      "kind": "deck",
+      "x": 2470.301975326842,
+      "y": -133.5543565261646,
+      "locked": false,
+      "tint": null,
+      "name": "신화창",
+      "formation": "f-goose",
+      "notes": "",
+      "generals": [
+        {
+          "name": "강유",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-spear",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "연전연승",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "문무겸비",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "유비",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-shield",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "보보위영",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "기선제압",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "sp제갈량",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-shield",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "침략 방어",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "천하평론",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        }
+      ],
+      "fieldId": "6da33257-5411-45a0-90a9-fb95333f2cd4",
+      "createdAt": 1791029806253,
+      "updatedAt": 1791079884050
+    },
+    {
+      "id": "a1538998-3c53-4842-84be-d8883444b6ef",
+      "kind": "text",
+      "x": -51.540574008924295,
+      "y": -998.5543565261646,
+      "locked": false,
+      "tint": null,
+      "text": "연의 1",
+      "fontSize": 40,
+      "width": 219,
+      "height": 69,
+      "background": true,
+      "fieldId": "1e51bf06-d075-484d-a4ab-9ac0b07ac2d4",
+      "createdAt": 1791086104103,
+      "updatedAt": 1791086104103
+    },
+    {
+      "id": "a1b14d18-8e7a-42fa-aa4f-f23aa4b0b23f",
+      "kind": "deck",
+      "x": 1558.3019753268418,
+      "y": 1439.5255185939914,
+      "locked": false,
+      "tint": null,
+      "name": "준숭술",
+      "formation": "f-awl",
+      "notes": "",
+      "generals": [
+        {
+          "name": "주준",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-archer",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "세금 과징수",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "허실 간파",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "황보숭",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-shield",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "신체 개조",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "전력 지원",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "원술",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-shield",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "보보위영",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "일심협력",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        }
+      ],
+      "fieldId": null,
+      "createdAt": 1791081156653,
+      "updatedAt": 1791081283560
+    },
+    {
+      "id": "a3034e4b-1ae8-4c18-8bd3-6a6a1da5f8b8",
+      "kind": "deck",
+      "x": -911.7507974801993,
+      "y": 1503.9619323260354,
+      "locked": false,
+      "tint": null,
+      "name": "",
+      "formation": null,
+      "notes": "",
+      "generals": [
+        {
+          "name": "",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": null,
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": null,
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": null,
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        }
+      ],
+      "fieldId": "f2632cb7-2f41-467c-972e-0a82c6c23c63",
+      "createdAt": 1791083927159,
+      "updatedAt": 1791083927159
+    },
+    {
+      "id": "a7b136c8-c12b-4a01-899a-cf672c3a1c45",
+      "kind": "deck",
+      "x": -329.75079748019925,
+      "y": 940.6689593431577,
+      "locked": false,
+      "tint": null,
+      "name": "원손육 대체",
+      "formation": "f-goose",
+      "notes": "원손육 대체버전",
+      "generals": [
+        {
+          "name": "육손",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-archer",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "허실 간파",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "연전연승",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "원소",
+          "portraitId": null,
+          "needsTally": true,
+          "yeonui": true,
+          "troopType": "t-archer",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "팔방전",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "맹렬한 화염",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "좌자",
+          "portraitId": null,
+          "needsTally": true,
+          "yeonui": false,
+          "troopType": "t-archer",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "침략 방어",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "기선제압",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        }
+      ],
+      "fieldId": "2d5c45ce-069b-434a-b9a7-2063decd743b",
+      "createdAt": 1791079770549,
+      "updatedAt": 1791080309887
+    },
+    {
+      "id": "acda2848-12e2-4d0a-97a7-08147faf827f",
+      "kind": "deck",
+      "x": -911.7507974801993,
+      "y": 2067.346933909328,
+      "locked": false,
+      "tint": null,
+      "name": "",
+      "formation": null,
+      "notes": "",
+      "generals": [
+        {
+          "name": "",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": null,
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": null,
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": null,
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        }
+      ],
+      "fieldId": "9a089f93-fb15-471b-8163-a48c19dc6500",
+      "createdAt": 1791083963719,
+      "updatedAt": 1791083963719
+    },
+    {
+      "id": "adeb8551-1521-4e85-9efb-09e3176cc08e",
+      "kind": "list",
+      "x": 4420.6899548492165,
+      "y": 1439.5255185939914,
+      "locked": false,
+      "tint": null,
+      "season": "보라색 중에 쓰는것들",
+      "listGenerals": [],
+      "listTactics": [
+        "전쟁 종식",
+        "수중전",
+        "허점 공략",
+        "신의 가호",
+        "속수무책",
+        "독설가",
+        "평화의 기운",
+        "늠름한 자태",
+        "청야 전술",
+        ""
+      ],
+      "fieldId": null,
+      "createdAt": 1791080679328,
+      "updatedAt": 1791080833363
     },
     {
       "id": "b87fd884-7d55-4b1c-a886-071fe9296f9f",
@@ -354,8 +2259,193 @@
         "일심협력",
         "허실 간파"
       ],
+      "fieldId": null,
       "createdAt": 1791005900682,
       "updatedAt": 1791012356816
+    },
+    {
+      "id": "bd39adad-c2ff-40c7-b08f-f70c8157f223",
+      "kind": "deck",
+      "x": -324.5405740089243,
+      "y": 1503.9619323260354,
+      "locked": false,
+      "tint": null,
+      "name": "",
+      "formation": null,
+      "notes": "",
+      "generals": [
+        {
+          "name": "",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": null,
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": null,
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": null,
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        }
+      ],
+      "fieldId": "f2632cb7-2f41-467c-972e-0a82c6c23c63",
+      "createdAt": 1791083933094,
+      "updatedAt": 1791083933094
+    },
+    {
+      "id": "c6b48fbc-f367-49c7-b4b5-a8eabea55459",
+      "kind": "text",
+      "x": 3256.689954849216,
+      "y": -641.4744814060086,
+      "locked": false,
+      "tint": null,
+      "text": "*시트의 카운터 표를 참고했습니다.\n\n*덱이 배치된 위치는 성능과 관계 없습니다.\n\n\n덱 정보 추가 입력, 개인적인 덱 정리 등의 목표로 사이트를 사용하시고 싶으신 분들, 사이트 개선/건의에 관심 있으신 분들은 오픈카톡 누끄리로 연락 부탁드립니다.\n\n감사합니다.",
+      "fontSize": 20,
+      "width": 786,
+      "height": 307,
+      "background": true,
+      "fieldId": null,
+      "createdAt": 1791086519684,
+      "updatedAt": 1791086945668
+    },
+    {
+      "id": "de227002-b2d0-44f9-8995-ce84c593c1b1",
+      "kind": "text",
+      "x": -911.750797480199,
+      "y": 1404.9619323260354,
+      "locked": false,
+      "tint": null,
+      "text": "연의 2",
+      "fontSize": 40,
+      "width": 219,
+      "height": 69,
+      "background": true,
+      "fieldId": "f2632cb7-2f41-467c-972e-0a82c6c23c63",
+      "createdAt": 1791083905790,
+      "updatedAt": 1791083914268
+    },
+    {
+      "id": "debf2053-fc1f-47a6-b33b-1ba7c81c9fee",
+      "kind": "text",
+      "x": 2470.301975326842,
+      "y": -238.5543565261646,
+      "locked": false,
+      "tint": null,
+      "text": "신화창 계열",
+      "fontSize": 40,
+      "width": 250,
+      "height": 75,
+      "background": true,
+      "fieldId": "6da33257-5411-45a0-90a9-fb95333f2cd4",
+      "createdAt": 1791083760689,
+      "updatedAt": 1791083774924
     },
     {
       "id": "e5d3967a-2446-499a-aa15-efde48054bbc",
@@ -633,15 +2723,692 @@
         "허점 공격",
         "화공전술"
       ],
+      "fieldId": null,
       "createdAt": 1790997332418,
       "updatedAt": 1791012402549
+    },
+    {
+      "id": "ec153714-10c7-4f30-9a26-74612ac0ff22",
+      "kind": "deck",
+      "x": -906.5405740089243,
+      "y": 609.6689593431577,
+      "locked": false,
+      "tint": null,
+      "name": "좌원녕",
+      "formation": "f-gi",
+      "notes": "",
+      "generals": [
+        {
+          "name": "좌자",
+          "portraitId": null,
+          "needsTally": true,
+          "yeonui": false,
+          "troopType": "t-archer",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "침략 방어",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "뛰어난 응변",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "원소",
+          "portraitId": null,
+          "needsTally": true,
+          "yeonui": true,
+          "troopType": "t-archer",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "팔방전",
+              "alternatives": [
+                "병기 파괴"
+              ],
+              "required": false
+            },
+            {
+              "text": "적재적소",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "장녕",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-archer",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "허실 간파",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "황천의 선동",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        }
+      ],
+      "fieldId": "2d5c45ce-069b-434a-b9a7-2063decd743b",
+      "createdAt": 1791080054585,
+      "updatedAt": 1791080373403
+    },
+    {
+      "id": "f2632cb7-2f41-467c-972e-0a82c6c23c63",
+      "kind": "field",
+      "x": -972,
+      "y": 1345,
+      "locked": false,
+      "tint": null,
+      "width": 1259,
+      "height": 528,
+      "createdAt": 1791083905774,
+      "updatedAt": 1791083905774
+    },
+    {
+      "id": "f3b9ff8a-0413-447f-9991-d0de3fdc3b14",
+      "kind": "deck",
+      "x": 527.4594259910757,
+      "y": -899.5543565261646,
+      "locked": false,
+      "tint": null,
+      "name": "제마마",
+      "formation": "f-goose",
+      "notes": "",
+      "generals": [
+        {
+          "name": "마운록",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-cavalry",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "예리한 통찰",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "철기병 돌격",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "sp제갈량",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-shield",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "정의의 희생",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "침략 방어",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        },
+        {
+          "name": "마등",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-cavalry",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "강철의 의지",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "기선제압",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": null,
+          "statText": ""
+        }
+      ],
+      "fieldId": "1e51bf06-d075-484d-a4ab-9ac0b07ac2d4",
+      "createdAt": 1791082551491,
+      "updatedAt": 1791082610687
+    },
+    {
+      "id": "f412371b-e1e4-418e-83d8-95c42066ac4d",
+      "kind": "deck",
+      "x": 1558.3019753268416,
+      "y": -1058.5543565261648,
+      "locked": false,
+      "tint": null,
+      "name": "월량마",
+      "formation": "f-moon",
+      "notes": "추격덱 - 고돌 추천",
+      "generals": [
+        {
+          "name": "마초",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-cavalry",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "요새 함락",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "연전연승",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": "text",
+          "statText": "선공 225, 무력/통솔 1등"
+        },
+        {
+          "name": "sp제갈량",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-shield",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "침략 방어",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "기선제압",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": "s-int",
+          "statText": ""
+        },
+        {
+          "name": "악진",
+          "portraitId": null,
+          "needsTally": false,
+          "yeonui": false,
+          "troopType": "t-spear",
+          "troopTradition": null,
+          "tactics": [
+            {
+              "text": "팔방전",
+              "alternatives": [],
+              "required": false
+            },
+            {
+              "text": "천하평론",
+              "alternatives": [],
+              "required": false
+            }
+          ],
+          "arts": [
+            null,
+            null,
+            null
+          ],
+          "artTexts": [
+            "",
+            "",
+            ""
+          ],
+          "equipmentOptions": [
+            [],
+            []
+          ],
+          "mountOptions": [
+            [],
+            []
+          ],
+          "statChoice": "s-first",
+          "statText": ""
+        }
+      ],
+      "fieldId": null,
+      "createdAt": 1791078876559,
+      "updatedAt": 1791080154489
     }
   ],
-  "relations": [],
+  "relations": [
+    {
+      "id": "6310768c-d08e-45ba-98e0-b380a6507544",
+      "fromId": "7262ad20-a171-4210-912a-5ca8d18b776a",
+      "toId": "a7b136c8-c12b-4a01-899a-cf672c3a1c45",
+      "type": "custom",
+      "template": "line",
+      "label": "",
+      "color": null,
+      "lineStyle": "dashed",
+      "bidirectional": false
+    },
+    {
+      "id": "175f07a8-667c-4910-8365-746ec480221d",
+      "fromId": "9fdf9423-3fe1-49c0-94ef-e5ff8ab846bf",
+      "toId": "9c08870c-0157-4d6d-bd0e-3ab77145dcd7",
+      "type": "custom",
+      "template": "line",
+      "label": "",
+      "color": null,
+      "lineStyle": "dashed",
+      "bidirectional": false
+    },
+    {
+      "id": "accb52ed-5f2f-48d5-a86a-da06856065fa",
+      "fromId": "9c08870c-0157-4d6d-bd0e-3ab77145dcd7",
+      "toId": "11bda3f2-942c-443f-ad50-e431102867b2",
+      "type": "custom",
+      "template": "line",
+      "label": "",
+      "color": null,
+      "lineStyle": "dashed",
+      "bidirectional": false
+    },
+    {
+      "id": "e3121803-ffa4-491c-9100-665010f935eb",
+      "fromId": "f412371b-e1e4-418e-83d8-95c42066ac4d",
+      "toId": "6da33257-5411-45a0-90a9-fb95333f2cd4",
+      "type": "arrow",
+      "template": "counter",
+      "label": "",
+      "color": "#e08a3f",
+      "lineStyle": "solid",
+      "bidirectional": false
+    },
+    {
+      "id": "1bc612f3-b44d-4d93-9d67-19e030135dfa",
+      "fromId": "f412371b-e1e4-418e-83d8-95c42066ac4d",
+      "toId": "7262ad20-a171-4210-912a-5ca8d18b776a",
+      "type": "arrow",
+      "template": "counter",
+      "label": "",
+      "color": "#e08a3f",
+      "lineStyle": "solid",
+      "bidirectional": false
+    },
+    {
+      "id": "9cdd4405-17dd-41a1-a6f3-a4102e7103d3",
+      "fromId": "f412371b-e1e4-418e-83d8-95c42066ac4d",
+      "toId": "0ea769ab-6146-41c5-8c19-ffc9e02446ed",
+      "type": "arrow",
+      "template": "counter",
+      "label": "",
+      "color": "#e08a3f",
+      "lineStyle": "solid",
+      "bidirectional": false
+    },
+    {
+      "id": "1bbb64bf-bd58-43e4-9d40-453e7b7004f0",
+      "fromId": "6da33257-5411-45a0-90a9-fb95333f2cd4",
+      "toId": "7158f4fe-eb27-49bd-937b-054971330232",
+      "type": "arrow",
+      "template": "counter",
+      "label": "",
+      "color": "#e08a3f",
+      "lineStyle": "solid",
+      "bidirectional": false
+    },
+    {
+      "id": "0c29d2f5-2a06-4eca-baee-7fc3ed4bc8f5",
+      "fromId": "6da33257-5411-45a0-90a9-fb95333f2cd4",
+      "toId": "a1b14d18-8e7a-42fa-aa4f-f23aa4b0b23f",
+      "type": "arrow",
+      "template": "counter",
+      "label": "",
+      "color": "#d64545",
+      "lineStyle": "solid",
+      "bidirectional": false
+    },
+    {
+      "id": "f6737d92-6015-4ffc-bd10-93dcff0b136a",
+      "fromId": "7262ad20-a171-4210-912a-5ca8d18b776a",
+      "toId": "7158f4fe-eb27-49bd-937b-054971330232",
+      "type": "arrow",
+      "template": "counter",
+      "label": "",
+      "color": "#d64545",
+      "lineStyle": "solid",
+      "bidirectional": false
+    },
+    {
+      "id": "55f1c3a7-510f-424b-aac5-fc38b1d436ed",
+      "fromId": "7262ad20-a171-4210-912a-5ca8d18b776a",
+      "toId": "a1b14d18-8e7a-42fa-aa4f-f23aa4b0b23f",
+      "type": "arrow",
+      "template": "counter",
+      "label": "",
+      "color": "#d64545",
+      "lineStyle": "solid",
+      "bidirectional": false
+    },
+    {
+      "id": "0fc019a3-e41e-4530-b9f5-25160166c066",
+      "fromId": "1e51bf06-d075-484d-a4ab-9ac0b07ac2d4",
+      "toId": "f412371b-e1e4-418e-83d8-95c42066ac4d",
+      "type": "arrow",
+      "template": "counter",
+      "label": "",
+      "color": "#e08a3f",
+      "lineStyle": "solid",
+      "bidirectional": false
+    },
+    {
+      "id": "22b8c30b-be82-4e4b-a906-9859425d771f",
+      "fromId": "1e51bf06-d075-484d-a4ab-9ac0b07ac2d4",
+      "toId": "6da33257-5411-45a0-90a9-fb95333f2cd4",
+      "type": "arrow",
+      "template": "counter",
+      "label": "",
+      "color": "#e08a3f",
+      "lineStyle": "solid",
+      "bidirectional": false
+    },
+    {
+      "id": "2f827178-5be6-4c0e-9508-45a8ff303b19",
+      "fromId": "1e51bf06-d075-484d-a4ab-9ac0b07ac2d4",
+      "toId": "7262ad20-a171-4210-912a-5ca8d18b776a",
+      "type": "arrow",
+      "template": "counter",
+      "label": "",
+      "color": "#e08a3f",
+      "lineStyle": "solid",
+      "bidirectional": false
+    },
+    {
+      "id": "106321f9-91e2-4f42-a4a2-1b6da49380eb",
+      "fromId": "7158f4fe-eb27-49bd-937b-054971330232",
+      "toId": "1e51bf06-d075-484d-a4ab-9ac0b07ac2d4",
+      "type": "arrow",
+      "template": "counter",
+      "label": "",
+      "color": "#e08a3f",
+      "lineStyle": "solid",
+      "bidirectional": false
+    },
+    {
+      "id": "120bac61-fb41-45af-b7ad-f97cb1e40608",
+      "fromId": "1e51bf06-d075-484d-a4ab-9ac0b07ac2d4",
+      "toId": "0ea769ab-6146-41c5-8c19-ffc9e02446ed",
+      "type": "arrow",
+      "template": "counter",
+      "label": "",
+      "color": "#e08a3f",
+      "lineStyle": "solid",
+      "bidirectional": false
+    },
+    {
+      "id": "7c063213-de88-418b-ac4d-7bce347ad955",
+      "fromId": "7158f4fe-eb27-49bd-937b-054971330232",
+      "toId": "f412371b-e1e4-418e-83d8-95c42066ac4d",
+      "type": "arrow",
+      "template": "counter",
+      "label": "",
+      "color": "#e08a3f",
+      "lineStyle": "solid",
+      "bidirectional": false
+    },
+    {
+      "id": "4a6a8a34-707b-4978-8a7d-21b4745f0a7a",
+      "fromId": "a1b14d18-8e7a-42fa-aa4f-f23aa4b0b23f",
+      "toId": "f412371b-e1e4-418e-83d8-95c42066ac4d",
+      "type": "arrow",
+      "template": "counter",
+      "label": "",
+      "color": "#e08a3f",
+      "lineStyle": "solid",
+      "bidirectional": false
+    },
+    {
+      "id": "5cb7ff5f-a234-42ea-b55b-2e615e485137",
+      "fromId": "a1b14d18-8e7a-42fa-aa4f-f23aa4b0b23f",
+      "toId": "1e51bf06-d075-484d-a4ab-9ac0b07ac2d4",
+      "type": "arrow",
+      "template": "counter",
+      "label": "",
+      "color": "#e08a3f",
+      "lineStyle": "solid",
+      "bidirectional": false
+    },
+    {
+      "id": "e33b1934-7a3e-4f8f-896f-84fe30743625",
+      "fromId": "a1b14d18-8e7a-42fa-aa4f-f23aa4b0b23f",
+      "toId": "7158f4fe-eb27-49bd-937b-054971330232",
+      "type": "arrow",
+      "template": "counter",
+      "label": "",
+      "color": "#e08a3f",
+      "lineStyle": "solid",
+      "bidirectional": false
+    },
+    {
+      "id": "50fe0f1a-2861-4723-afb1-9290554eeecc",
+      "fromId": "0ea769ab-6146-41c5-8c19-ffc9e02446ed",
+      "toId": "6da33257-5411-45a0-90a9-fb95333f2cd4",
+      "type": "arrow",
+      "template": "counter",
+      "label": "",
+      "color": "#e08a3f",
+      "lineStyle": "solid",
+      "bidirectional": false
+    },
+    {
+      "id": "7e185bca-4c43-47e5-81b8-d0bc1d31abf0",
+      "fromId": "0ea769ab-6146-41c5-8c19-ffc9e02446ed",
+      "toId": "7262ad20-a171-4210-912a-5ca8d18b776a",
+      "type": "arrow",
+      "template": "counter",
+      "label": "",
+      "color": "#e08a3f",
+      "lineStyle": "solid",
+      "bidirectional": false
+    },
+    {
+      "id": "3056e161-2422-496c-9fcd-c6f1df3c5d51",
+      "fromId": "0ea769ab-6146-41c5-8c19-ffc9e02446ed",
+      "toId": "7158f4fe-eb27-49bd-937b-054971330232",
+      "type": "arrow",
+      "template": "counter",
+      "label": "",
+      "color": "#e08a3f",
+      "lineStyle": "solid",
+      "bidirectional": false
+    },
+    {
+      "id": "539a3ec4-db3e-4899-a82c-c1cd2fe048dd",
+      "fromId": "0ea769ab-6146-41c5-8c19-ffc9e02446ed",
+      "toId": "a1b14d18-8e7a-42fa-aa4f-f23aa4b0b23f",
+      "type": "arrow",
+      "template": "counter",
+      "label": "",
+      "color": "#d64545",
+      "lineStyle": "solid",
+      "bidirectional": false
+    }
+  ],
   "view": {
-    "panX": -2124.283524400564,
-    "panY": 242.52357408781745,
-    "scale": 0.6049981461590189
+    "panX": -167.78158296179163,
+    "panY": 243.0424693625331,
+    "scale": 0.233879989354528
   },
   "images": {
     "f41a8080-eb1d-44c6-8c8b-da3e9d377722": "data:image/webp;base64,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",
