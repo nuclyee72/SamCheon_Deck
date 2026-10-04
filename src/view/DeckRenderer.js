@@ -215,9 +215,12 @@ export class DeckRenderer {
     }
   }
 
+  /** 필드 사각형을 다시 맞춰 그 자리에 — 바뀐 게 있으면 필드에 이어진 관계선도 따라오게. */
   _placeFields() {
+    const before = JSON.stringify([...this.fieldRects]);
     this._fitFields();
     for (const d of this.model.decks.values()) if (d.kind === "field") this._place(d);
+    if (JSON.stringify([...this.fieldRects]) !== before) this.onMove?.();
   }
 
   /** 필드의 저장된 사각형을 지금 화면 사각형으로 — 비게 되더라도 그 자리·크기 그대로 남게(실행취소엔 같은 묶음). */
@@ -528,6 +531,7 @@ export class DeckRenderer {
       let anchorY = anchorEl ? offsetTopWithin(anchorEl, el) + anchorEl.offsetHeight / 2 : el.offsetHeight / 2;
       if (portrait) anchorY += collapsedNotesHeight(el);
       if (deck.kind === "field") {
+        // 관계선은 필드 가운데를 향해 필드 테두리에서 끝난다.
         const r = this.fieldRect(deck);
         out.push({ id: deck.id, kind: deck.kind, x: r.x, y: r.y, width: r.width, height: r.height, anchorY: r.height / 2 });
         continue;

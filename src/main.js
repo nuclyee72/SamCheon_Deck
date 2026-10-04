@@ -226,7 +226,7 @@ function exitConnect() {
 }
 
 function updateConnectStatus() {
-  toolbar.setConnectStatus(`${connect.template.name}: ${connect.fromId ? "끝 덱 선택" : "시작 덱 선택"} (취소)`);
+  toolbar.setConnectStatus(`${connect.template.name}: ${connect.fromId ? "끝 덱·필드 선택" : "시작 덱·필드 선택"} (취소)`);
 }
 
 function pickConnectDeck(deckId) {
@@ -245,26 +245,28 @@ function pickConnectDeck(deckId) {
   exitConnect();
 }
 
-// 연결 모드에서는 덱을 누르면 입력칸·버튼 대신 "그 덱을 고른 것"으로 처리한다 — 캡처 단계에서 가로채
-// 덱 안쪽(입력 포커스, 병부 토글, 헤더 드래그 등)까지 이벤트가 안 내려가게 막는다.
+// 연결 모드에서는 덱(필드 포함)을 누르면 입력칸·버튼 대신 "그 덱을 고른 것"으로 처리한다 — 캡처 단계에서
+// 가로채 덱 안쪽(입력 포커스, 병부 토글, 헤더·필드 드래그 등)까지 이벤트가 안 내려가게 막는다.
 // 고른 직후 따라오는 click도 삼킨다 — 두 번째 덱을 고르면 그 pointerdown에서 연결 모드가 끝나는데,
 // 그 뒤 click이 그대로 내려가면 누른 자리의 버튼(병부 토글 등)이 눌려버린다.
 let swallowNextClick = false;
-decksEl.addEventListener("pointerdown", (e) => {
-  if (!connect) return;
-  const board = e.target.closest(".deck-board:not(.field-board)"); // 필드는 관계선 대상이 아님
-  if (!board) return;
-  e.preventDefault();
-  e.stopPropagation();
-  swallowNextClick = true;
-  pickConnectDeck(board.dataset.id);
-}, true);
-decksEl.addEventListener("click", (e) => {
-  if (!swallowNextClick) return;
-  swallowNextClick = false;
-  e.preventDefault();
-  e.stopPropagation();
-}, true);
+for (const layer of [decksEl, fieldsEl]) {
+  layer.addEventListener("pointerdown", (e) => {
+    if (!connect) return;
+    const board = e.target.closest(".deck-board");
+    if (!board) return;
+    e.preventDefault();
+    e.stopPropagation();
+    swallowNextClick = true;
+    pickConnectDeck(board.dataset.id);
+  }, true);
+  layer.addEventListener("click", (e) => {
+    if (!swallowNextClick) return;
+    swallowNextClick = false;
+    e.preventDefault();
+    e.stopPropagation();
+  }, true);
+}
 
 // ---------- 관계선 편집 창 ----------
 let editingRelId = null;
@@ -310,7 +312,10 @@ function closeRelEditor() {
 
 function syncRelEditor(rel) {
   const template = CATALOG.relationTemplates.find((t) => t.id === rel.template);
-  const titleOf = (id) => (model.decks.has(id) && deckTitle(model.decks.get(id))) || "이름 없는 덱";
+  const titleOf = (id) => {
+    const d = model.decks.get(id);
+    return (d && deckTitle(d)) || (d?.kind === "field" ? "필드" : `이름 없는 ${d ? kindNoun(d) : "덱"}`);
+  };
   const from = titleOf(rel.fromId);
   const to = titleOf(rel.toId);
   relEditorEl.querySelector(".rel-editor-title").textContent =
