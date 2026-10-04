@@ -103,6 +103,15 @@ toolbar.setRelationTemplates(CATALOG.relationTemplates);
 // 보여준다(style.css #app[data-ui-mode="view"]). 덱은 못 옮기고, 캔버스는 덱 위에서 끌어도 팬된다.
 const UI_MODE_KEY = "deck-ui-mode";
 let uiMode = "edit";
+/** 보기 모드에서 덱/필드를 눌렀을 때 카운터를 또렷하게 보일 대상 — 그 덱 + 그 덱이 든 필드. */
+function counterFocusIds(deckId) {
+  const deck = deckId && model.decks.get(deckId);
+  if (!deck) return null;
+  const ids = new Set([deck.id]);
+  if (deck.fieldId && model.decks.get(deck.fieldId)?.kind === "field") ids.add(deck.fieldId);
+  return ids;
+}
+
 function applyUiMode(mode, { remember = true } = {}) {
   uiMode = mode === "view" || PUBLIC ? "view" : "edit";
   renderer.changeLayout(() => {
@@ -113,6 +122,7 @@ function applyUiMode(mode, { remember = true } = {}) {
   closeDeckMenu();
   closeRelEditor();
   if (uiMode === "view") exitConnect();
+  relations.setFocus(null);
   relations.refresh();
   if (remember) {
     try { localStorage.setItem(UI_MODE_KEY, uiMode); } catch { /* 저장 안 돼도 전환은 됨 */ }
@@ -402,8 +412,8 @@ function placeDeck(content, near = null) {
   // (그래야 놓자마자 엉뚱한 덱을 품지 않는다).
   const obstacles = renderer.rects().filter((r) => content.kind === "field" || r.kind !== "field");
   const spot = isText ? { x: Math.round(x), y: Math.round(y) } : findGapSpot(obstacles, width, height, x, y);
-  // 놓인 자리의 중심이 필드 안이면 그 필드 소속(필드 크기가 그 덱까지 감싸게 늘어난다).
-  if (content.kind !== "field") content.fieldId = renderer.fieldAt(spot.x + width / 2, spot.y + height / 2);
+  // 놓인 자리가 필드에 걸치면 그 필드 소속(끌어다 놓을 때와 같은 규칙) — 필드 크기가 그 덱까지 감싸게 늘어난다.
+  if (content.kind !== "field") content.fieldId = renderer.fieldOverlapping(spot.x, spot.y, width, height);
   const deck = model.addDeck(content, spot);
   ensureDeckVisible(deck);
   return deck;
@@ -462,6 +472,9 @@ const backgroundDrag = new DragController(viewportEl, {
   onDragEnd: () => camera.setTransforming(false),
   onClick: (e) => {
     renderer.setSelected(null);
+    // 보기 모드에서 덱/필드를 누르면 그 덱에 이어진 카운터 관계선만 또렷하게(덱이면 그 덱이 든 필드 것도),
+    // 빈 곳을 누르면 다시 전부 흐리게.
+    relations.setFocus(uiMode === "view" ? counterFocusIds(e.target.closest?.(".deck-board")?.dataset.id) : null);
     // 보기 모드에서 리스트 장수/전법 칸을 탭한 경우는 그 칸의 click이 강조를 켜고 끈다 — 여기서 먼저
     // 꺼버리면 같은 칸을 다시 눌러 끄기가 안 된다. (그 칸 위에서 끌면 화면 이동은 그대로 된다)
     if (!e.target.closest?.(".list-general, .list-tactic")) renderer.setHighlight(null);
@@ -938,6 +951,7 @@ function isTyping(e) {
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
     renderer.setHighlight(null);
+    relations.setFocus(null);
     setOwnedMode(false);
     exitConnect();
     closeRelEditor();

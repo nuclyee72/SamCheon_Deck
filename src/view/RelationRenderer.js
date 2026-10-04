@@ -23,6 +23,8 @@ export class RelationRenderer {
     this.onClick = onClick;
     this.lineEls = new Map(); // relId -> <g>
     this.selectedId = null;
+    // 보기 모드에서 누른 덱/필드 id들 — 카운터 관계선은 평소엔 흐리게, 이 덱들에 이어진 것만 또렷하게(style.css).
+    this.focusIds = null;
 
     model.onChange((type, payload) => {
       if (type === "reset") return this.renderAll();
@@ -52,6 +54,20 @@ export class RelationRenderer {
     this.layerEl.append(g);
     this.lineEls.set(rel.id, g);
     this._applyScale(g);
+    this._applyFocus(g, rel);
+  }
+
+  /** ids: 누른 덱(+ 그 덱이 든 필드) id들의 Set, 또는 null(전부 기본으로). */
+  setFocus(ids) {
+    this.focusIds = ids && ids.size ? ids : null;
+    for (const [id, g] of this.lineEls) {
+      const rel = this.model.relations.get(id);
+      if (rel) this._applyFocus(g, rel);
+    }
+  }
+
+  _applyFocus(g, rel) {
+    g.classList.toggle("rel-focus", !!this.focusIds && (this.focusIds.has(rel.fromId) || this.focusIds.has(rel.toId)));
   }
 
   _remove(id) {
@@ -128,6 +144,7 @@ export class RelationRenderer {
  * 구분하는 관계는 라벨까지 같은 색이어야 한눈에 들어온다. */
 function styleLine(g, rel) {
   applyLineStyle(g, rel);
+  g.classList.toggle("rel-counter", rel.template === "counter"); // 보기 모드에서 흐리게(style.css)
   g.querySelector(".rel-line-label").style.fill = rel.color || "";
 }
 

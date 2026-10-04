@@ -67,10 +67,11 @@ export class DeckRenderer {
     // 화면 밀림 — deckId -> 제자리(deck.y)에서 아래로 얼마나 내려 보여주는지(px, 0 이상). 덱 높이가
     // 바뀌면(내용·표시 단계·수정/보기, 글꼴 로딩까지) ResizeObserver가 _reflow를 다시 부른다.
     this.offsets = new Map();
-    // 필드 화면 사각형 — fieldId -> { x, y, width, height }(소속 덱들 + 여백). 소속이 없으면 마지막으로 맞췄던
-    // 사각형(lastFieldFit, 이번 세션), 그것도 없으면 저장된 크기.
+    // 필드 화면 사각형 — fieldId -> { x, y, width, height }(소속 덱들 + 여백). 소속이 없는 빈 필드는 저장된
+    // 사각형(+ 밀림). lastFieldFit은 마지막으로 맞췄던 사각형 — 마지막 덱이 빠져 비게 될 때 그 자리를 저장하는 데 쓴다.
     this.fieldRects = new Map();
     this.lastFieldFit = new Map();
+    this._memberField = new Map(); // deckId -> 소속 필드 id(지워진 덱이 어느 필드 것이었는지 알려고)
     this._anim = null; // 밀림 애니메이션 { from, to, start, raf }
     this._reflowQueued = false;
     this._resizeObserver = new ResizeObserver(() => this._scheduleReflow());
@@ -79,6 +80,7 @@ export class DeckRenderer {
   }
 
   _handle(type, payload) {
+    const removedFrom = type === "deck:remove" ? this._memberField.get(payload) : null;
     if (type === "reset") this.renderAll();
     else if (type === "deck:add") this._add(payload);
     else if (type === "deck:update") this._update(payload);
@@ -90,6 +92,7 @@ export class DeckRenderer {
     }
     if (type === "reset") this._reflow({ animate: false });
     else if (type.startsWith("deck:")) this._reflow();
+    if (removedFrom && !this.fieldRects.has(removedFrom)) queueMicrotask(() => this._commitFieldRect(removedFrom));
   }
 
   renderAll() {
@@ -149,8 +152,8 @@ export class DeckRenderer {
 
   /** 필드의 화면 사각형. */
   fieldRect(field) {
-    return this.fieldRects.get(field.id) || this.lastFieldFit.get(field.id) ||
-      { x: field.x, y: field.y, width: field.width, height: field.height };
+    return this.fieldRects.get(field.id) ||
+      { x: field.x, y: field.y + (this.offsets.get(field.id) || 0), width: field.width, height: field.height };
   }
 
   /** 필드에 소속된 것(덱·리스트·텍스트 박스) id들. */
@@ -190,8 +193,11 @@ export class DeckRenderer {
   /** 소속 덱들의 화면 위치(밀림 포함)로 필드 사각형을 다시 맞춘다. */
   _fitFields() {
     const boxes = new Map(); // fieldId -> { minX, minY, maxX, maxY }
+    this._memberField.clear();
     for (const d of this.model.decks.values()) {
       if (!d.fieldId || d.kind === "field") continue;
+      if (this.model.decks.get(d.fieldId)?.kind !== "field") continue; // 지워진 필드를 가리키면 소속 없음
+      this._memberField.set(d.id, d.fieldId);
       const el = this.boardEls.get(d.id);
       if (!el) continue;
       const x = d.x;
@@ -227,7 +233,8 @@ export class DeckRenderer {
   _commitFieldRect(fieldId) {
     const f = fieldId && this.model.decks.get(fieldId);
     if (!f || f.kind !== "field") return;
-    const r = this.fieldRect(f);
+    const r = this.fieldRects.get(f.id) || this.lastFieldFit.get(f.id);
+    if (!r) return;
     const next = { x: Math.round(r.x), y: Math.round(r.y), width: Math.round(r.width), height: Math.round(r.height) };
     if (next.x !== f.x || next.y !== f.y || next.width !== f.width || next.height !== f.height) this.model.updateDeck(f.id, next);
   }
@@ -265,35 +272,87 @@ export class DeckRenderer {
     });
   }
 
-  /** 제자리(deck.x/y)와 지금 높이로 화면 위치를 다시 계산한다. 위에서부터 차례로, 가로로 겹치는 위쪽 덱의
-   * (화면상) 아래 끝 + REFLOW_GAP보다 위에 있으면 그만큼만 내린다 — 닿지 않으면 제자리. 텍스트 박스는
-   * 밀지도 밀리지도 않고, 겹쳐 있거나 바로 아래에 있는 덱을 따라 같이 내려간다(라벨이 떨어지지 않게).
-   * 끄는 중에는 미뤄 뒀다가 놓을 때(모델 변경) 다시 계산한다. */
+  /** 제자리(deck.x/y)와 지금 높이로 화면 위치를 다시 계산한다. 두 단계:
+   *  1) 필드마다 소속 덱끼리 — 가로로 겹치는 위쪽 덱의 아래 끝 + REFLOW_GAP보다 위에 있으면 그만큼만 내린다.
+   *  2) 필드 한 덩어리(소속 덱들 + 여백, 빈 필드는 저장된 크기)와 필드 밖 덱을 같은 규칙으로 — 그래서 필드가
+   *     길어지면 아래 덱·필드를 통째로 밀고, 필드와 덱·필드끼리 겹치지 않는다.
+   * 닿지 않으면 제자리. 텍스트 박스는 밀지도 밀리지도 않고, 겹쳐 있거나 바로 아래에 있는 덱을 따라(없으면 소속
+   * 필드를 따라) 같이 내려간다. 끄는 중에는 미뤄 뒀다가 놓을 때(모델 변경) 다시 계산한다. */
   _reflow({ animate = true } = {}) {
     if (this._drag) return;
     const items = [];
+    const fieldIds = new Set();
     for (const deck of this.model.decks.values()) {
       const el = this.boardEls.get(deck.id);
-      if (el) items.push({ id: deck.id, kind: deck.kind, x: deck.x, y: deck.y, w: el.offsetWidth, h: el.offsetHeight });
-    }
-    const target = new Map();
-    const solids = items.filter((it) => it.kind !== "text" && it.kind !== "field").sort((a, b) => a.y - b.y);
-    const placed = [];
-    for (const it of solids) {
-      let y = it.y;
-      for (const p of placed) {
-        if (p.x >= it.x + it.w || p.x + p.w <= it.x) continue; // 가로로 안 겹치면 상관없음
-        y = Math.max(y, p.dispY + p.h + REFLOW_GAP);
+      if (!el) continue;
+      if (deck.kind === "field") {
+        fieldIds.add(deck.id);
+        items.push({ id: deck.id, kind: "field", x: deck.x, y: deck.y, w: deck.width, h: deck.height });
+      } else {
+        items.push({ id: deck.id, kind: deck.kind, fieldId: deck.fieldId, x: deck.x, y: deck.y, w: el.offsetWidth, h: el.offsetHeight });
       }
-      it.dispY = y;
-      placed.push(it);
-      target.set(it.id, y - it.y);
     }
-    for (const t of items) {
-      if (t.kind === "field") target.set(t.id, 0);
-      if (t.kind !== "text") continue;
-      const anchor = textAnchor(t, solids);
-      target.set(t.id, anchor ? target.get(anchor.id) : 0);
+    const fieldOf = (it) => (it.kind !== "field" && it.fieldId && fieldIds.has(it.fieldId) ? it.fieldId : null);
+    const isSolid = (it) => it.kind !== "text" && it.kind !== "field";
+    const target = new Map();
+
+    // 위에서부터 차례로 — units: { id, x, y, w, h }, 결과는 내려간 만큼(shift).
+    const push = (units) => {
+      const placed = [];
+      const shift = new Map();
+      for (const u of [...units].sort((a, b) => a.y - b.y)) {
+        let y = u.y;
+        for (const p of placed) {
+          if (p.x >= u.x + u.w || p.x + p.w <= u.x) continue; // 가로로 안 겹치면 상관없음
+          y = Math.max(y, p.dispY + p.h + REFLOW_GAP);
+        }
+        u.dispY = y;
+        placed.push(u);
+        shift.set(u.id, y - u.y);
+      }
+      return shift;
+    };
+
+    // 1) 필드 안
+    const inner = new Map();
+    const fieldBox = new Map(); // fieldId -> 소속 덱들(안에서 민 뒤)의 사각형
+    for (const fid of fieldIds) {
+      const members = items.filter((it) => fieldOf(it) === fid);
+      if (!members.length) continue;
+      const solids = members.filter(isSolid);
+      for (const [id, s] of push(solids)) inner.set(id, s);
+      for (const t of members) {
+        if (t.kind !== "text") continue;
+        const anchor = textAnchor(t, solids);
+        inner.set(t.id, anchor ? inner.get(anchor.id) : 0);
+      }
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const m of members) {
+        const y = m.y + inner.get(m.id);
+        minX = Math.min(minX, m.x); minY = Math.min(minY, y);
+        maxX = Math.max(maxX, m.x + m.w); maxY = Math.max(maxY, y + m.h);
+      }
+      fieldBox.set(fid, { x: minX - FIELD_PAD, y: minY - FIELD_PAD, w: maxX - minX + FIELD_PAD * 2, h: maxY - minY + FIELD_PAD * 2 });
+    }
+
+    // 2) 필드 덩어리 + 필드 밖 덱
+    const units = [];
+    for (const it of items) {
+      if (it.kind === "field") units.push({ id: it.id, ...(fieldBox.get(it.id) || { x: it.x, y: it.y, w: it.w, h: it.h }) });
+      else if (isSolid(it) && !fieldOf(it)) units.push({ id: it.id, x: it.x, y: it.y, w: it.w, h: it.h });
+    }
+    const outer = push(units);
+
+    for (const it of items) {
+      const fid = fieldOf(it);
+      if (it.kind === "field") target.set(it.id, outer.get(it.id) || 0);
+      else if (fid) target.set(it.id, (inner.get(it.id) || 0) + (outer.get(fid) || 0));
+      else if (isSolid(it)) target.set(it.id, outer.get(it.id) || 0);
+      else {
+        // 필드 밖 텍스트 박스 — 겹쳐 있거나 바로 아래에 있는 덱이나 필드(덩어리)를 따라.
+        const anchor = textAnchor(it, units);
+        target.set(it.id, anchor ? outer.get(anchor.id) || 0 : 0);
+      }
     }
     this._animateOffsets(target, animate);
   }
@@ -620,6 +679,7 @@ export class DeckRenderer {
     const r = this.fieldRect(field);
     const home = { x: field.x, y: field.y, width: field.width, height: field.height };
     Object.assign(field, { x: r.x, y: r.y, width: r.width, height: r.height });
+    this.offsets.set(id, 0);
     this._drag = {
       id, field: true, startX: r.x, startY: r.y, dx: 0, dy: 0,
       width: r.width, height: r.height, members, home,
@@ -672,7 +732,6 @@ export class DeckRenderer {
     }
     // 소속이 없는 빈 필드는 필드 자신의 x/y로, 있으면 옮긴 덱들에 다시 맞춰서.
     if (g.members.length) this._fitFields();
-    else this.lastFieldFit.delete(g.id);
     this._place(field);
     this.onMove?.();
     this._setGuides(guideX, guideY, extra);
@@ -743,7 +802,7 @@ export class DeckRenderer {
         // 빈 필드는 보이는 사각형(마지막으로 맞췄던 크기일 수 있음)에서 시작해 저장된 크기로 바꾼다.
         if (d.kind === "field") {
           Object.assign(d, this.fieldRect(d));
-          this.lastFieldFit.delete(id);
+          this.offsets.set(id, 0);
         }
         g = { x: d.x, y: d.y, width: d.width, height: d.height, dx: 0, dy: 0 };
         el.classList.add("resizing");
