@@ -1,7 +1,7 @@
 import { uuid } from "../lib/uuid.js";
 
 export const GENERAL_COUNT = 3;
-export const TACTIC_COUNT = 3;
+export const TACTIC_COUNT = 2;
 export const ART_COUNT = 3;
 /** 장비/탈것의 옵 줄 — 카탈로그 equipmentOptions/mountOptions의 키와 같은 순서(1옵, 2옵). */
 export const GEAR_OPTION_KEYS = ["opt1", "opt2"];
@@ -86,10 +86,12 @@ export function normalizeDeck(deck) {
     g.needsTally = !!src.needsTally;
     g.troopType = src.troopType ?? null;
     g.troopTradition = src.troopTradition ?? null;
+    // 예전 양식은 전법이 3칸(전법 1 = 장수 고유 전법)이었다 — 첫 칸은 버리고 전법 2·3을 앞으로 당긴다.
+    const srcTactics = src.tactics?.length > TACTIC_COUNT ? src.tactics.slice(-TACTIC_COUNT) : src.tactics;
     g.tactics = g.tactics.map((_, t) => ({
-      text: src.tactics?.[t]?.text || "",
-      alternatives: [...(src.tactics?.[t]?.alternatives || [])],
-      required: !!src.tactics?.[t]?.required,
+      text: srcTactics?.[t]?.text || "",
+      alternatives: [...(srcTactics?.[t]?.alternatives || [])],
+      required: !!srcTactics?.[t]?.required,
     }));
     g.arts = g.arts.map((_, a) => src.arts?.[a] ?? null);
     g.artTexts = g.artTexts.map((_, a) => src.artTexts?.[a] || "");

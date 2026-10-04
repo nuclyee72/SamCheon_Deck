@@ -488,7 +488,7 @@
 
 .deck-board .tactic-input { padding-right: 52px; }
 
-/* 필수 전법 "★ 필수" — 입력칸 오른쪽 끝(전법 2·3만). 꺼져 있으면 흐린 ☆, 켜면 금색 ★ + 입력칸 테두리도 금색. */
+/* 필수 전법 "★ 필수" — 입력칸 오른쪽 끝. 꺼져 있으면 흐린 ☆, 켜면 금색 ★ + 입력칸 테두리도 금색. */
 .tactic-star {
   position: absolute;
   top: 50%;
@@ -512,9 +512,6 @@
 .tactic-star:hover { opacity: 1; color: var(--tally); }
 .tactic.required .tactic-star { opacity: 1; color: var(--tally); }
 .deck-board .tactic.required .tactic-input { border-color: var(--tally); }
-
-/* 전법 1 — ☆ 없이 테두리만 노란색(필수 전법과 무관) */
-.deck-board .tactic.primary .tactic-input { border-color: var(--tally); padding-right: 8px; }
 
 /* 입력칸 오른쪽 옆 ▶(대체 전법이 있으면 개수도) */
 .tactic-toggle {
@@ -694,7 +691,7 @@
   box-shadow: 0 0 0 3px var(--owned), 0 4px 18px var(--panel-shadow);
 }
 
-/* 전법 칸은 바깥 테두리선(outline)으로 — 전법 1·필수 전법의 노란 테두리는 그대로 보이고, 보기 모드에서
+/* 전법 칸은 바깥 테두리선(outline)으로 — 필수 전법의 노란 테두리는 그대로 보이고, 보기 모드에서
    입력칸 box-shadow를 끄는 규칙에도 안 지워진다. */
 .deck-board .tactic.owned:not(.name-hl) .tactic-input,
 .deck-board .list-tactic.owned:not(.name-hl) .list-tactic-name,
