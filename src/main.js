@@ -788,9 +788,16 @@ tacticNamesEl.id = "dl-tactic-names";
 document.body.append(generalNamesEl, tacticNamesEl);
 
 function refreshNameSuggestions() {
-  const generals = new Set();
-  const tactics = new Set();
-  const add = (set, v) => { const s = String(v ?? "").trim(); if (s) set.add(s); };
+  // 이름별로 몇 칸에 쓰였는지 센다 — 입력 중인 칸의 값은 한 번 빼서, 그 칸에만 있는 이름(지금 치고
+  // 있는 글자)이 자기 후보로 뜨지 않게.
+  const generals = new Map();
+  const tactics = new Map();
+  const add = (map, v, n = 1) => {
+    const s = String(v ?? "").trim();
+    if (!s) return;
+    const c = (map.get(s) || 0) + n;
+    if (c > 0) map.set(s, c); else map.delete(s);
+  };
   for (const d of model.decks.values()) {
     if (d.kind === "list") {
       d.listGenerals.forEach((g) => add(generals, g.name));
@@ -805,8 +812,13 @@ function refreshNameSuggestions() {
       }
     }
   }
-  const fill = (el, set) => {
-    const values = [...set].sort((a, b) => a.localeCompare(b, "ko"));
+  const active = document.activeElement;
+  if (active?.matches?.("input[list]")) {
+    if (active.getAttribute("list") === generalNamesEl.id) add(generals, active.value, -1);
+    if (active.getAttribute("list") === tacticNamesEl.id) add(tactics, active.value, -1);
+  }
+  const fill = (el, map) => {
+    const values = [...map.keys()].sort((a, b) => a.localeCompare(b, "ko"));
     // 바뀐 게 없으면 그대로 둔다(입력 중에 후보 목록이 깜빡이지 않게).
     const sig = values.join("\n");
     if (el.dataset.values === sig) return;
@@ -820,6 +832,10 @@ let suggestTimer = null;
 model.onChange(() => {
   clearTimeout(suggestTimer);
   suggestTimer = setTimeout(refreshNameSuggestions, 300);
+});
+// 입력칸을 옮기면 "입력 중인 칸"이 바뀌니 후보도 바로 다시 만든다.
+document.addEventListener("focusin", (e) => {
+  if (e.target.matches?.("input[list]")) refreshNameSuggestions();
 });
 
 // ---------- 보드 수정일(화면 오른쪽 아래) ----------
