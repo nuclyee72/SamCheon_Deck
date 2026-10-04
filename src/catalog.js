@@ -19,6 +19,7 @@ export const CATALOG = {
     { id: "f-awl", name: "추형진" },
     { id: "f-fish", name: "어린진" },
     { id: "f-gu", name: "구행진" },
+    { id: "f-moon", name: "언월진" },
   ],
 
   /** 병종 — short는 덱 이름 오른쪽에 자동으로 붙는 병종 요약 글자(장수 1·2·3 순서로 "말•창•활"). */
