@@ -108,7 +108,7 @@ export const CATALOG = {
    * 추가하면 새 관계 종류가 생긴다. arrow: 화살표(시작 덱 → 끝 덱) 여부, label/color/lineStyle은
    * 새로 그을 때의 기본값(그은 뒤 선을 눌러 바꿀 수 있음). lineStyle: "solid" | "dashed" | "dotted". */
   relationTemplates: [
-    { id: "counter", name: "카운터", arrow: true, label: "카운터", color: "#d64545", lineStyle: "solid" },
+    { id: "counter", name: "카운터", arrow: true, label: "", color: "#d64545", lineStyle: "solid" },
     { id: "arrow", name: "화살표", arrow: true, label: "", color: null, lineStyle: "solid" },
     { id: "line", name: "기타(선)", arrow: false, label: "", color: null, lineStyle: "dashed" },
   ],

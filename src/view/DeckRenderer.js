@@ -639,9 +639,12 @@ export class DeckRenderer {
     const memberIds = new Set(g.members.map((m) => m.id));
     const rects = this.rects().filter((r) => r.id !== g.id && !memberIds.has(r.id));
     const otherFields = rects.filter((r) => r.kind === "field");
-    // 정렬 스냅은 다른 필드끼리만(Gagedo처럼) — 덱 간격(300) 스냅은 필드엔 안 맞는다.
-    const snapped = computeRectSnap(otherFields, g.startX + g.dx, g.startY + g.dy, { id: g.id, width: g.width, height: g.height }, {
+    // 스냅은 덱과 같은 규칙 — 다른 필드·필드 밖의 덱(텍스트 박스 제외)과 정렬선(세로는 위쪽끼리), 테두리에서
+    // 간격(300 / 바짝 30) 띄운 자리.
+    const snapped = computeRectSnap(rects.filter((r) => r.kind !== "text"), g.startX + g.dx, g.startY + g.dy, { id: g.id, width: g.width, height: g.height }, {
       threshold: SNAP_THRESHOLD_PX / this.camera.scale,
+      gap: [DECK_GAP, DECK_GAP_NEAR],
+      topOnly: true,
     });
     let nx = snapped.x, ny = snapped.y;
     let { guideX, guideY } = snapped;
@@ -801,7 +804,9 @@ export class DeckRenderer {
     if (!deck) return;
     g.dx += dxWorld;
     g.dy += dyWorld;
-    const others = this.rects().filter((r) => r.id !== g.id && r.kind !== "field");
+    // 스냅 대상에는 필드 테두리도 들어간다 — 단, 자기가 속한 필드는 빼고(자기를 감싼 테두리라 끌 때마다 걸림).
+    const ownField = deck.fieldId ?? null;
+    const others = this.rects().filter((r) => r.id !== g.id && !(r.kind === "field" && r.id === ownField));
     const me = { id: g.id, width: g.width, height: g.height };
     const snapped = computeRectSnap(others, g.startX + g.dx, g.startY + g.dy, me, {
       threshold: SNAP_THRESHOLD_PX / this.camera.scale,
@@ -815,8 +820,8 @@ export class DeckRenderer {
     // 다른 덱 필드와 겹치는 자리로는 못 간다 — 한 축만 막히면 그 축만 멈춰서 벽을 타고 미끄러지듯,
     // 둘 다 막히면 그 자리에 멈춘다(가계도 필드와 같은 규칙). 단, 이미 겹쳐 있는 상태(예: 다른
     // 기기에서 가져온 데이터)라면 막지 않는다 — 그래야 겹친 덱을 빼낼 수 있다.
-    // 텍스트 박스는 막지도 막히지도 않는다(라벨처럼 덱 위에 얹어 쓸 수 있게).
-    const solid = others.filter((r) => r.kind !== "text");
+    // 텍스트 박스는 막지도 막히지도 않는다(라벨처럼 덱 위에 얹어 쓸 수 있게). 필드는 덱이 드나드는 판이라 안 막는다.
+    const solid = others.filter((r) => r.kind !== "text" && r.kind !== "field");
     const collides = (x, y) => rectCollides(solid, g.width, g.height, x, y, null);
     if (!g.free && collides(nx, ny) && !collides(deck.x, deck.y)) {
       const xOk = !collides(nx, deck.y);
