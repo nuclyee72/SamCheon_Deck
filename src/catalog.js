@@ -32,9 +32,7 @@ export const CATALOG = {
 
   /** 병종 전통 — 지금은 병종과 무관하게 전체 목록이 보인다. */
   troopTraditions: [
-    { id: "tr-elite", name: "정예 전통" },
-    { id: "tr-heavy", name: "중장 전통" },
-    { id: "tr-light", name: "경장 전통" },
+    { id: "tr-tbd", name: "입력 예정" },
   ],
 
   /** 병법 — 장수당 3개. 목록 맨 아래에 "고유"가 따로 붙고, 고르면 이름을 직접 입력하는 칸이 열린다. */
@@ -77,30 +75,20 @@ export const CATALOG = {
    * 이 후보 중 추천을 개수 제한 없이 고른다(왼쪽부터 추천 순서). */
   equipmentOptions: {
     opt1: [
-      { id: "eo1-atk", name: "공격력" },
-      { id: "eo1-str", name: "무력" },
-      { id: "eo1-int", name: "지력" },
-      { id: "eo1-crit", name: "치명" },
+      { id: "eo1-tbd", name: "입력 예정" },
     ],
     opt2: [
-      { id: "eo2-def", name: "방어" },
-      { id: "eo2-hp", name: "병력" },
-      { id: "eo2-dodge", name: "회피" },
-      { id: "eo2-heal", name: "회복량" },
+      { id: "eo2-tbd", name: "입력 예정" },
     ],
   },
 
   /** 탈것 옵션 — 장비와 같은 형식(opt1 / opt2 후보가 따로). */
   mountOptions: {
     opt1: [
-      { id: "mo1-speed", name: "속도" },
-      { id: "mo1-lead", name: "통솔" },
-      { id: "mo1-first", name: "선공" },
+      { id: "mo1-tbd", name: "입력 예정" },
     ],
     opt2: [
-      { id: "mo2-dodge", name: "회피" },
-      { id: "mo2-reduce", name: "피해감소" },
-      { id: "mo2-morale", name: "사기" },
+      { id: "mo2-tbd", name: "입력 예정" },
     ],
   },
 
