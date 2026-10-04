@@ -1097,7 +1097,7 @@
   stroke-linejoin: round;
 }
 #app[data-ui-mode="view"] #rels-layer * { pointer-events: none !important; cursor: default; }
-/* 보기 모드: 카운터 관계선은 연하게 — 덱/필드를 누르면 그 덱(+ 그 덱이 든 필드)에 이어진 것만 원래대로 */
+/* 보기 모드: 카운터 관계선은 연하게 — 덱/필드를 누르면 그 덱(+ 그 덱이 든 필드)에서 출발하는 것만 원래대로 */
 #app[data-ui-mode="view"] #rels-layer .rel-line.rel-counter { opacity: 0.22; transition: opacity 0.15s ease; }
 #app[data-ui-mode="view"] #rels-layer .rel-line.rel-counter.rel-focus { opacity: 1; }
 

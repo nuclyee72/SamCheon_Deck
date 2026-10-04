@@ -472,7 +472,7 @@ const backgroundDrag = new DragController(viewportEl, {
   onDragEnd: () => camera.setTransforming(false),
   onClick: (e) => {
     renderer.setSelected(null);
-    // 보기 모드에서 덱/필드를 누르면 그 덱에 이어진 카운터 관계선만 또렷하게(덱이면 그 덱이 든 필드 것도),
+    // 보기 모드에서 덱/필드를 누르면 그 덱에서 출발하는 카운터 관계선만 또렷하게(덱이면 그 덱이 든 필드 것도),
     // 빈 곳을 누르면 다시 전부 흐리게.
     relations.setFocus(uiMode === "view" ? counterFocusIds(e.target.closest?.(".deck-board")?.dataset.id) : null);
     // 보기 모드에서 리스트 장수/전법 칸을 탭한 경우는 그 칸의 click이 강조를 켜고 끈다 — 여기서 먼저

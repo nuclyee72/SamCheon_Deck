@@ -23,7 +23,7 @@ export class RelationRenderer {
     this.onClick = onClick;
     this.lineEls = new Map(); // relId -> <g>
     this.selectedId = null;
-    // 보기 모드에서 누른 덱/필드 id들 — 카운터 관계선은 평소엔 흐리게, 이 덱들에 이어진 것만 또렷하게(style.css).
+    // 보기 모드에서 누른 덱/필드 id들 — 카운터 관계선은 평소엔 흐리게, 이 덱들에서 출발하는 것만 또렷하게(style.css).
     this.focusIds = null;
 
     model.onChange((type, payload) => {
@@ -67,7 +67,10 @@ export class RelationRenderer {
   }
 
   _applyFocus(g, rel) {
-    g.classList.toggle("rel-focus", !!this.focusIds && (this.focusIds.has(rel.fromId) || this.focusIds.has(rel.toId)));
+    // 누른 덱에서 출발하는 선만 — 양방향이면 어느 쪽 끝이든 출발점이다.
+    const ids = this.focusIds;
+    const on = !!ids && (ids.has(rel.fromId) || (rel.bidirectional && ids.has(rel.toId)));
+    g.classList.toggle("rel-focus", on);
   }
 
   _remove(id) {
