@@ -17,7 +17,7 @@ export function createTacticBox(gi, ti) {
   el.dataset.tacticPath = base;
   el.innerHTML = `
     <div class="tactic-field">
-      <input type="text" class="tactic-input" list="dl-tactic-names" autocomplete="off" data-path="${base}.text" placeholder="전법 ${ti + 1}">
+      <input type="text" class="tactic-input" data-suggest="tactic" autocomplete="off" data-path="${base}.text" placeholder="전법 ${ti + 1}">
       <button type="button" class="tactic-star" data-act="toggle-required" data-path="${base}.required" aria-pressed="false"><span class="tactic-star-icon">☆</span><span class="tactic-star-label">필수</span></button>
     </div>
     <button type="button" class="tactic-toggle" data-act="toggle-alts" title="대체 전법 보기" aria-expanded="false">
@@ -52,7 +52,7 @@ export function syncTacticBox(el, tactic) {
       const row = document.createElement("div");
       row.className = "tactic-alt-row";
       row.innerHTML = `
-        <input type="text" class="tactic-alt-input" list="dl-tactic-names" autocomplete="off" data-path="${base}.alternatives.${ai}" placeholder="대체 전법 ${ai + 1}">
+        <input type="text" class="tactic-alt-input" data-suggest="tactic" autocomplete="off" data-path="${base}.alternatives.${ai}" placeholder="대체 전법 ${ai + 1}">
         <button type="button" class="tactic-alt-remove" data-act="remove-alt" data-index="${ai}" title="삭제" aria-label="대체 전법 ${ai + 1} 삭제">×</button>
       `;
       return row;

@@ -18,6 +18,7 @@ export function emptyGeneral() {
     name: "",
     portraitId: null, // DeckStore images 스토어의 Blob 키
     needsTally: false, // 병부 필요 여부(초상화 오른쪽 위 마크)
+    yeonui: false, // 연의 체크(병부 마크 아래)
     troopType: null,
     troopTradition: null,
     tactics: Array.from({ length: TACTIC_COUNT }, () => ({ text: "", alternatives: [], required: false })), // required = 필수 전법(★)
@@ -84,6 +85,7 @@ export function normalizeDeck(deck) {
     g.name = src.name || "";
     g.portraitId = src.portraitId ?? null;
     g.needsTally = !!src.needsTally;
+    g.yeonui = !!src.yeonui;
     g.troopType = src.troopType ?? null;
     g.troopTradition = src.troopTradition ?? null;
     // 예전 양식은 전법이 3칸(전법 1 = 장수 고유 전법)이었다 — 첫 칸은 버리고 전법 2·3을 앞으로 당긴다.

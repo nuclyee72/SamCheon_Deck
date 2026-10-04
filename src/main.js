@@ -12,6 +12,7 @@ import { CATALOG } from "./catalog.js";
 import { COLOR_PRESETS, LINE_STYLE_PRESETS } from "./lib/RelationshipLine.js";
 import { Toolbar } from "./ui/Toolbar.js";
 import { closeAllTactics } from "./ui/DeckBoard.js";
+import { initNameSuggest } from "./ui/NameSuggest.js";
 
 const viewportEl = document.getElementById("viewport");
 const stageEl = document.getElementById("stage");
@@ -499,8 +500,8 @@ function handleDeckAction(deckId, act, ctx) {
     return model.setPath(deckId, ctx.path, list.filter((_, i) => i !== ctx.index));
   }
   if (act === "toggle-required") return model.setPath(deckId, ctx.path, !model.getPath(deckId, ctx.path));
-  if (act === "toggle-tally") {
-    const path = `generals.${ctx.gi}.needsTally`;
+  if (act === "toggle-tally" || act === "toggle-yeonui") {
+    const path = `generals.${ctx.gi}.${act === "toggle-tally" ? "needsTally" : "yeonui"}`;
     return model.setPath(deckId, path, !model.getPath(deckId, path));
   }
   // 초상화 칸 — 덱 장수 카드는 gi로, 리스트 장수 칸은 path(listGenerals.i.portraitId)로 온다.
@@ -779,64 +780,25 @@ function safeFileName(s) {
 }
 
 // ---------- 장수·전법 이름 자동완성 ----------
-// 보드에 이미 있는 장수 이름 / 전법 이름을 <datalist>로 모아 입력칸에 후보로 띄운다 — 같은 장수를
+// 보드에 이미 있는 장수 이름 / 전법 이름을 입력칸 아래 후보로 띄운다(ui/NameSuggest.js) — 같은 장수를
 // 조금 다르게 적으면 강조(리스트에서 누르기)가 안 맞으니, 이미 쓴 이름을 골라 쓰게.
-const generalNamesEl = document.createElement("datalist");
-generalNamesEl.id = "dl-general-names";
-const tacticNamesEl = document.createElement("datalist");
-tacticNamesEl.id = "dl-tactic-names";
-document.body.append(generalNamesEl, tacticNamesEl);
-
-function refreshNameSuggestions() {
-  // 이름별로 몇 칸에 쓰였는지 센다 — 입력 중인 칸의 값은 한 번 빼서, 그 칸에만 있는 이름(지금 치고
-  // 있는 글자)이 자기 후보로 뜨지 않게.
-  const generals = new Map();
-  const tactics = new Map();
-  const add = (map, v, n = 1) => {
-    const s = String(v ?? "").trim();
-    if (!s) return;
-    const c = (map.get(s) || 0) + n;
-    if (c > 0) map.set(s, c); else map.delete(s);
-  };
+function boardNames(kind) {
+  const names = new Set();
+  const add = (v) => { const s = String(v ?? "").trim(); if (s) names.add(s); };
   for (const d of model.decks.values()) {
     if (d.kind === "list") {
-      d.listGenerals.forEach((g) => add(generals, g.name));
-      d.listTactics.forEach((t) => add(tactics, t));
+      if (kind === "general") d.listGenerals.forEach((g) => add(g.name));
+      else d.listTactics.forEach(add);
     } else {
       for (const g of d.generals) {
-        add(generals, g.name);
-        for (const t of g.tactics) {
-          add(tactics, t.text);
-          t.alternatives.forEach((a) => add(tactics, a));
-        }
+        if (kind === "general") add(g.name);
+        else for (const t of g.tactics) [t.text, ...t.alternatives].forEach(add);
       }
     }
   }
-  const active = document.activeElement;
-  if (active?.matches?.("input[list]")) {
-    if (active.getAttribute("list") === generalNamesEl.id) add(generals, active.value, -1);
-    if (active.getAttribute("list") === tacticNamesEl.id) add(tactics, active.value, -1);
-  }
-  const fill = (el, map) => {
-    const values = [...map.keys()].sort((a, b) => a.localeCompare(b, "ko"));
-    // 바뀐 게 없으면 그대로 둔다(입력 중에 후보 목록이 깜빡이지 않게).
-    const sig = values.join("\n");
-    if (el.dataset.values === sig) return;
-    el.dataset.values = sig;
-    el.replaceChildren(...values.map((v) => Object.assign(document.createElement("option"), { value: v })));
-  };
-  fill(generalNamesEl, generals);
-  fill(tacticNamesEl, tactics);
+  return [...names].sort((a, b) => a.localeCompare(b, "ko"));
 }
-let suggestTimer = null;
-model.onChange(() => {
-  clearTimeout(suggestTimer);
-  suggestTimer = setTimeout(refreshNameSuggestions, 300);
-});
-// 입력칸을 옮기면 "입력 중인 칸"이 바뀌니 후보도 바로 다시 만든다.
-document.addEventListener("focusin", (e) => {
-  if (e.target.matches?.("input[list]")) refreshNameSuggestions();
-});
+initNameSuggest(boardNames);
 
 // ---------- 보드 수정일(화면 오른쪽 아래) ----------
 // 처음 불러온 뒤로 보드가 바뀔 때마다(덱 내용·위치·관계선·실행취소 등) 지금 시각으로 — 자동저장과

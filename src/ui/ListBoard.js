@@ -95,7 +95,7 @@ export function syncListBoard(el, deck, portraitUrlFor) {
         </button>
         <button type="button" class="portrait-remove" data-act="remove-portrait" data-path="listGenerals.${i}.portraitId" title="초상화 지우기" aria-label="초상화 지우기">×</button>
       </div>
-      <input type="text" class="list-general-name" list="dl-general-names" autocomplete="off" data-path="listGenerals.${i}.name" placeholder="장수">
+      <input type="text" class="list-general-name" data-suggest="general" autocomplete="off" data-path="listGenerals.${i}.name" placeholder="장수">
       <button type="button" class="list-item-remove" data-act="list-remove" data-path="listGenerals" data-index="${i}" title="빼기" aria-label="장수 ${i + 1} 빼기">×</button>
     `;
     return item;
@@ -113,7 +113,7 @@ export function syncListBoard(el, deck, portraitUrlFor) {
     const item = document.createElement("div");
     item.className = "list-item list-tactic";
     item.innerHTML = `
-      <input type="text" class="list-tactic-name" list="dl-tactic-names" autocomplete="off" data-path="listTactics.${i}" placeholder="전법">
+      <input type="text" class="list-tactic-name" data-suggest="tactic" autocomplete="off" data-path="listTactics.${i}" placeholder="전법">
       <button type="button" class="list-item-remove" data-act="list-remove" data-path="listTactics" data-index="${i}" title="빼기" aria-label="전법 ${i + 1} 빼기">×</button>
     `;
     return item;

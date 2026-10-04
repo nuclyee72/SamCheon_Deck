@@ -17,10 +17,11 @@ export function createGeneralCard(gi) {
           <img class="portrait-img" src="${DEFAULT_AVATAR}" alt="">
         </button>
         <button type="button" class="tally-badge" data-act="toggle-tally" title="병부 필요 여부" aria-pressed="false">병부</button>
+        <button type="button" class="tally-badge yeonui-badge" data-act="toggle-yeonui" title="연의" aria-pressed="false">연의</button>
         <button type="button" class="portrait-remove" data-act="remove-portrait" title="초상화 지우기" aria-label="초상화 지우기">×</button>
       </div>
       <div class="general-ident">
-        <input type="text" class="general-name" list="dl-general-names" autocomplete="off" data-path="${base}.name" placeholder="장수 ${gi + 1}">
+        <input type="text" class="general-name" data-suggest="general" autocomplete="off" data-path="${base}.name" placeholder="장수 ${gi + 1}">
         <div class="troop-row">
           ${selectHTML("troopTypes", `${base}.troopType`, { placeholder: "병종" })}
           ${selectHTML("troopTraditions", `${base}.troopTradition`, { placeholder: "전통" })}
@@ -145,10 +146,15 @@ export function syncGeneralCard(el, general, portraitUrl, { borrowed = false } =
     syncTacticBox(tacticEls[ti], tactic);
   });
 
-  const tally = el.querySelector(".tally-badge");
+  const tally = el.querySelector(".tally-badge:not(.yeonui-badge)");
   tally.classList.toggle("on", !!general.needsTally);
   tally.setAttribute("aria-pressed", String(!!general.needsTally));
   tally.title = general.needsTally ? "병부 필요 (클릭해서 해제)" : "병부 불필요 (클릭해서 표시)";
+
+  const yeonui = el.querySelector(".yeonui-badge");
+  yeonui.classList.toggle("on", !!general.yeonui);
+  yeonui.setAttribute("aria-pressed", String(!!general.yeonui));
+  yeonui.title = general.yeonui ? "연의 (클릭해서 해제)" : "연의 아님 (클릭해서 표시)";
 
   el.querySelector(".portrait-img").src = portraitUrl || DEFAULT_AVATAR;
   el.querySelector(".portrait").classList.toggle("has-image", !!portraitUrl);
