@@ -4,7 +4,7 @@ import { UndoManager } from "./lib/UndoManager.js";
 import { ImageCropEditor } from "./lib/ImageCropEditor.js";
 import { uuid } from "./lib/uuid.js";
 import { findFreeRectSpot, rectCollides } from "./lib/fieldSnap.js";
-import { DeckModel, cloneDeckContent, emptyListGeneral, deckPortraitIds, DECK_TINTS, generalKey } from "./core/DeckModel.js";
+import { DeckModel, cloneDeckContent, emptyListGeneral, deckPortraitIds, DECK_TINTS, DECK_KINDS, generalKey } from "./core/DeckModel.js";
 import { DeckStore, MemoryDeckStore, imagesToDataURLs, dataURLsToImages, EXPORT_VERSION } from "./core/DeckStore.js";
 import { DeckRenderer, DECK_GAP } from "./view/DeckRenderer.js";
 import { RelationRenderer } from "./view/RelationRenderer.js";
@@ -171,7 +171,7 @@ function setAllOwned(on) {
       if (d.kind === "list") {
         d.listGenerals.forEach((g) => gens.add(generalKey(g.name)));
         d.listTactics.forEach((t) => tactics.add(generalKey(t)));
-      } else {
+      } else if (d.kind === "deck") {
         for (const g of d.generals) {
           gens.add(generalKey(g.name));
           for (const t of g.tactics) [t.text, ...t.alternatives].forEach((n) => tactics.add(generalKey(n)));
@@ -377,9 +377,13 @@ function viewportCenterWorld() {
   return camera.screenToWorld(rect.left + rect.width / 2, rect.top + rect.height / 2);
 }
 
-/** content를 가진 새 덱(또는 리스트)을 (기본: 화면 가운데) 다른 덱과 안 겹치는 가장 가까운 자리에 놓는다. */
+/** content를 가진 새 덱(또는 리스트)을 (기본: 화면 가운데) 다른 덱과 안 겹치는 가장 가까운 자리에 놓는다.
+ * 텍스트 박스는 겹쳐도 되는 라벨이라 빈 자리를 찾지 않고 그 자리에 그대로. */
 function placeDeck(content, near = null) {
-  const { width, height } = renderer.measureBoardSize(content.kind === "list" ? "list" : "deck");
+  const isText = content.kind === "text";
+  const { width, height } = isText
+    ? { width: content.width ?? renderer.measureBoardSize("text").width, height: content.height ?? renderer.measureBoardSize("text").height }
+    : renderer.measureBoardSize(content.kind === "list" ? "list" : "deck");
   let x, y;
   if (near) {
     ({ x, y } = near);
@@ -388,7 +392,7 @@ function placeDeck(content, near = null) {
     x = c.x - width / 2;
     y = c.y - height / 2;
   }
-  const spot = findGapSpot(renderer.rects(), width, height, x, y);
+  const spot = isText ? { x: Math.round(x), y: Math.round(y) } : findGapSpot(renderer.rects(), width, height, x, y);
   const deck = model.addDeck(content, spot);
   ensureDeckVisible(deck);
   return deck;
@@ -566,8 +570,9 @@ function openDeckMenu(deckId, button) {
   if (menuDeckId === deckId && !deckMenuEl.hidden) return closeDeckMenu();
   menuDeckId = deckId;
   deckMenuEl.querySelector('[data-menu="toggle-lock"]').textContent = deck.locked ? "위치 잠금 해제" : "위치 잠금";
-  deckMenuEl.querySelector('[data-menu="export-deck"]').textContent = `이 ${deck.kind === "list" ? "리스트" : "덱"} JSON으로 내보내기`;
+  deckMenuEl.querySelector('[data-menu="export-deck"]').textContent = `이 ${kindNoun(deck)} JSON으로 내보내기`;
   syncTintButtons(deck);
+  syncTextMenu(deck);
   deckMenuEl.hidden = false;
   const r = button.getBoundingClientRect();
   const m = deckMenuEl.getBoundingClientRect();
@@ -581,9 +586,29 @@ function closeDeckMenu() {
   menuDeckId = null;
 }
 
+// 텍스트 박스 전용 — 글자 크기(−/+)는 메뉴를 닫지 않고 바로 반영, 배경 켜고 끄기.
+const FONT_STEPS = [8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 40, 48, 56, 64, 80, 96, 120];
+function syncTextMenu(deck) {
+  const isText = deck.kind === "text";
+  for (const n of deckMenuEl.querySelectorAll("[data-text-only]")) n.hidden = !isText;
+  if (!isText) return;
+  deckMenuEl.querySelector(".deck-menu-font-size").textContent = `${deck.fontSize}px`;
+  deckMenuEl.querySelector('[data-menu="toggle-bg"]').textContent = deck.background ? "배경 끄기 (글자만)" : "배경 켜기";
+}
+function stepFontSize(size, dir) {
+  return dir > 0 ? FONT_STEPS.find((s) => s > size) ?? size : [...FONT_STEPS].reverse().find((s) => s < size) ?? size;
+}
+
 deckMenuEl.addEventListener("click", async (e) => {
   const btn = e.target.closest("button[data-menu]");
   if (!btn) return;
+  if (btn.dataset.menu === "font-down" || btn.dataset.menu === "font-up") {
+    const deck = model.decks.get(menuDeckId);
+    if (!deck) return;
+    model.updateDeck(deck.id, { fontSize: stepFontSize(deck.fontSize, btn.dataset.menu === "font-up" ? 1 : -1) });
+    syncTextMenu(deck);
+    return;
+  }
   const deckId = menuDeckId;
   closeDeckMenu();
   const deck = model.decks.get(deckId);
@@ -593,6 +618,7 @@ deckMenuEl.addEventListener("click", async (e) => {
   else if (action === "duplicate") duplicateDeck(deck);
   else if (action === "export-deck") await exportDeck(deck);
   else if (action === "toggle-lock") model.updateDeck(deck.id, { locked: !deck.locked });
+  else if (action === "toggle-bg") model.updateDeck(deck.id, { background: !deck.background });
   else if (action === "delete") deleteDeck(deck);
 });
 
@@ -608,19 +634,26 @@ function duplicateDeck(deck) {
   const content = cloneDeckContent(deck);
   if (content.name) content.name = `${content.name} (복사본)`;
   if (content.season) content.season = `${content.season} (복사본)`;
-  const copy = placeDeck(content, { x: deck.x + (el?.offsetWidth || 0) + DECK_GAP, y: deck.y });
+  const near = deck.kind === "text" ? { x: deck.x + 24, y: deck.y + 24 } : { x: deck.x + (el?.offsetWidth || 0) + DECK_GAP, y: deck.y };
+  const copy = placeDeck(content, near);
   renderer.setSelected(copy.id);
 }
 
-/** 덱 이름(리스트면 시즌) — 확인창·템플릿 이름·파일 이름에 쓴다. */
+/** 덱 이름(리스트면 시즌, 텍스트 박스면 첫 줄 앞부분) — 확인창·템플릿 이름·파일 이름에 쓴다. */
 function deckTitle(deck) {
+  if (deck.kind === "text") return deck.text.trim().split("\n")[0].slice(0, 20);
   return (deck.kind === "list" ? deck.season : deck.name) || "";
 }
 
+/** 확인창·메뉴 글자에 쓰는 종류 이름. */
+function kindNoun(deck) {
+  return deck.kind === "list" ? "리스트" : deck.kind === "text" ? "텍스트 박스" : "덱";
+}
+
 function deleteDeck(deck) {
-  const noun = deck.kind === "list" ? "리스트" : "덱";
+  const noun = kindNoun(deck);
   const label = deckTitle(deck) ? `"${deckTitle(deck)}" ${noun}` : `이 ${noun}`;
-  if (confirm(`${label}을 삭제할까요? (실행취소로 되돌릴 수 있어요)`)) model.removeDeck(deck.id);
+  if (confirm(`${label}${noun === "덱" ? "을" : "를"} 삭제할까요? (실행취소로 되돌릴 수 있어요)`)) model.removeDeck(deck.id);
 }
 
 // ---------- 덱 템플릿(이 브라우저에만 저장) ----------
@@ -638,7 +671,7 @@ async function refreshTemplates() {
 
 async function saveTemplate(deck) {
   const content = cloneDeckContent(deck); // prompt 전에 떠둔다 — 누른 순간의 내용으로 저장
-  const name = prompt("템플릿 이름을 입력하세요.", deckTitle(deck) || `${deck.kind === "list" ? "리스트" : "덱"} 템플릿 ${templates.length + 1}`);
+  const name = prompt("템플릿 이름을 입력하세요.", deckTitle(deck) || `${kindNoun(deck)} 템플릿 ${templates.length + 1}`);
   if (name === null) return;
   try {
     // 초상화 Blob 사본도 같이 — 원본 덱을 지우거나 바꿔도 템플릿에서는 계속 보이게.
@@ -664,13 +697,21 @@ async function insertTemplate(id) {
   renderer.setSelected(deck.id);
 }
 
-/** 템플릿 메뉴 맨 위의 기본 템플릿 — "deck"(빈 덱 양식) / "list"(시즌 + 장수 목록 + 전법 목록).
- * 놓은 뒤 제목 칸(덱 이름 / 시즌)에 바로 입력할 수 있게 포커스. */
+/** 템플릿 메뉴 맨 위의 기본 템플릿 — "deck"(빈 덱 양식) / "list"(시즌 + 장수 목록 + 전법 목록) /
+ * "text"(텍스트 박스). 놓은 뒤 제목 칸(덱 이름 / 시즌)에 바로 입력할 수 있게 포커스 — 텍스트 박스는
+ * 기본 글자("텍스트")를 통째로 골라 둬서 바로 덮어쓰게. */
 function insertBuiltinTemplate(kind) {
-  if (uiMode === "view" || !["deck", "list"].includes(kind)) return;
+  if (uiMode === "view" || !DECK_KINDS.includes(kind)) return;
   const deck = placeDeck({ kind });
   renderer.setSelected(deck.id);
-  renderer.boardEls.get(deck.id)?.querySelector(".deck-name")?.focus();
+  const el = renderer.boardEls.get(deck.id);
+  if (kind === "text") {
+    const content = el?.querySelector(".text-content");
+    content?.focus();
+    content?.select();
+  } else {
+    el?.querySelector(".deck-name")?.focus();
+  }
 }
 
 async function deleteTemplate(id) {
@@ -789,7 +830,7 @@ function boardNames(kind) {
     if (d.kind === "list") {
       if (kind === "general") d.listGenerals.forEach((g) => add(g.name));
       else d.listTactics.forEach(add);
-    } else {
+    } else if (d.kind === "deck") {
       for (const g of d.generals) {
         if (kind === "general") add(g.name);
         else for (const t of g.tactics) [t.text, ...t.alternatives].forEach(add);

@@ -32,9 +32,15 @@ export function emptyGeneral() {
 }
 
 /** 보드 위 필드 종류 — "deck" = 덱 양식(장수 3명), "list" = 리스트 템플릿(시즌 제목 + 장수 목록 +
- * 전법 목록, 개수 제한 없음). 둘 다 model.decks에 같이 들어 있어서 드래그·스냅·관계선·⋯ 메뉴·
- * 실행취소·저장을 그대로 같이 쓴다. kind가 없는 예전 데이터는 덱. */
-export const DECK_KINDS = ["deck", "list"];
+ * 전법 목록, 개수 제한 없음), "text" = 자유 텍스트 박스(가계도 메이커 Gagedo의 텍스트 박스). 전부
+ * model.decks에 같이 들어 있어서 드래그·스냅·관계선·⋯ 메뉴·실행취소·저장을 그대로 같이 쓴다. kind가
+ * 없는 예전 데이터는 덱. */
+export const DECK_KINDS = ["deck", "list", "text"];
+
+/** 텍스트 박스 기본값(Gagedo addTextBox와 같다) — 상자 크기(width/height)와 글자 크기는 따로 논다. */
+export const TEXT_BOX_DEFAULTS = { text: "텍스트", fontSize: 20, width: 200, height: 50 };
+export const TEXT_BOX_MIN = { width: 40, height: 24 };
+export const TEXT_FONT_RANGE = { min: 8, max: 120 };
 
 /** 덱/리스트 배경색 — 색 값 대신 이름을 저장하고 실제 색은 style.css(--tint-*)가 정한다(다크 모드에서
  * 다른 색). null = 기본 배경. */
@@ -76,8 +82,28 @@ function normalizeList(deck) {
 
 /** 저장된(또는 가져온) 덱을 지금 양식에 맞춘다 — 빠진 칸은 채우고, 개수는 양식대로 맞춘다.
  * 나중에 양식이 바뀌어도(항목 추가 등) 예전 덱을 그대로 불러올 수 있게 하는 안전장치. */
+function normalizeText(deck) {
+  const num = (v, fallback, min, max = Infinity) => (Number.isFinite(v) ? Math.min(max, Math.max(min, v)) : fallback);
+  return {
+    id: deck.id || uuid(),
+    kind: "text",
+    x: deck.x ?? 0,
+    y: deck.y ?? 0,
+    locked: !!deck.locked,
+    tint: normalizeTint(deck.tint),
+    text: typeof deck.text === "string" ? deck.text : TEXT_BOX_DEFAULTS.text,
+    fontSize: num(deck.fontSize, TEXT_BOX_DEFAULTS.fontSize, TEXT_FONT_RANGE.min, TEXT_FONT_RANGE.max),
+    width: num(deck.width, TEXT_BOX_DEFAULTS.width, TEXT_BOX_MIN.width),
+    height: num(deck.height, TEXT_BOX_DEFAULTS.height, TEXT_BOX_MIN.height),
+    background: deck.background !== false, // false = 배경·테두리 없이 글자만
+    createdAt: deck.createdAt || Date.now(),
+    updatedAt: deck.updatedAt || Date.now(),
+  };
+}
+
 export function normalizeDeck(deck) {
   if (deck.kind === "list") return normalizeList(deck);
+  if (deck.kind === "text") return normalizeText(deck);
   // 아는 항목만 골라 담는다 — 예전 양식에만 있던 값(장비/탈것 단일 선택, 속성치 숫자 등)은 버린다.
   const generals = Array.from({ length: GENERAL_COUNT }, (_, i) => {
     const src = deck.generals?.[i] || {};

@@ -17,7 +17,7 @@ export class Toolbar {
       </div>
       <div class="toolbar-group edit-only">
         <div class="toolbar-dropdown template-dropdown">
-          <button type="button" data-action="template-menu" title="새 덱·리스트·저장한 템플릿 넣기">템플릿 ▾</button>
+          <button type="button" data-action="template-menu" title="새 덱·리스트·텍스트 박스·저장한 템플릿 넣기">템플릿 ▾</button>
           <div class="toolbar-dropdown-menu template-menu-list"></div>
         </div>
         <div class="toolbar-dropdown relation-dropdown">
@@ -153,7 +153,7 @@ export class Toolbar {
   }
 
   /** templates: DeckStore.listTemplates() — 이름은 사용자가 입력한 값이라 textContent로 넣는다.
-   * 맨 위에는 항상 기본 템플릿(빈 덱 / 리스트)이 있고, 그 아래 구분선 다음에 저장한 템플릿들. */
+   * 맨 위에는 항상 기본 템플릿(빈 덱 / 리스트 / 텍스트 박스)이 있고, 그 아래 구분선 다음에 저장한 템플릿들. */
   setTemplates(templates) {
     const menu = this.el.querySelector(".template-menu-list");
     menu.replaceChildren();
@@ -162,6 +162,7 @@ export class Toolbar {
     for (const [kind, label, title] of [
       ["deck", "🃏 덱 (장수 3명)", "화면 가운데에 빈 덱 넣기"],
       ["list", "📋 리스트 (시즌·장수·전법)", "화면 가운데에 빈 리스트 넣기"],
+      ["text", "📝 텍스트 박스", "화면 가운데에 텍스트 박스 넣기"],
     ]) {
       const row = document.createElement("div");
       row.className = "template-menu-row";

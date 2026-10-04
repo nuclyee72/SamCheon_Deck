@@ -2,7 +2,8 @@ import { DragController } from "../lib/DragController.js";
 import { rectCollides, computeRectSnap } from "../lib/fieldSnap.js";
 import { createDeckBoard, syncDeckBoard, positionDeckBoard, closeAllTactics, setBoardEditable } from "../ui/DeckBoard.js";
 import { createListBoard, syncListBoard } from "../ui/ListBoard.js";
-import { deckPortraitIds, generalKey } from "../core/DeckModel.js";
+import { createTextBoard, syncTextBoard, sizeTextBoard, focusTextBoard } from "../ui/TextBoard.js";
+import { deckPortraitIds, generalKey, TEXT_BOX_DEFAULTS, TEXT_BOX_MIN } from "../core/DeckModel.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const SNAP_THRESHOLD_PX = 14; // 가계도 TreeRenderer와 같은 화면 기준 스냅 거리
@@ -11,10 +12,22 @@ const SNAP_THRESHOLD_PX = 14; // 가계도 TreeRenderer와 같은 화면 기준 
 export const DECK_GAP = 300;
 // 드래그 스냅에만 쓰는 좁은 간격 — 관계선 없이 바짝(조금만 띄워) 붙여 놓고 싶을 때.
 const DECK_GAP_NEAR = 30;
+// 화면 밀림(_reflow): 위 덱이 길어져 닿으면 아래 덱을 이만큼은 띄운 채로 민다.
+const REFLOW_GAP = DECK_GAP_NEAR;
+// 텍스트 박스가 "바로 아래 덱의 라벨"로 따라 움직이는 거리(텍스트 박스 아래 끝 ~ 덱 위 끝).
+const TEXT_ATTACH_GAP = 160;
+const REFLOW_ANIM_MS = 160;
 
 /**
  * DeckModel → DOM 동기화 + 덱 필드 드래그(헤더로만)·정렬 스냅·겹침 방지·휴지통 삭제.
  * 덱 필드 크기는 모델에 없고 DOM에서 잰다(양식이 고정이라 사실상 일정함).
+ *
+ * 덱 위치(deck.x/y)는 사용자가 놓은 "제자리"이고, 밀림 때문에 바뀌지 않는다. 표시 단계·수정/보기 전환·
+ * 입력(장비 칩 줄바꿈, 리스트 칸 추가)으로 덱이 길어져 아래 덱에 닿으면, 아래 덱을 화면에서만 필요한
+ * 만큼 내려 보여주고(offsets) 다시 짧아지면 제자리로 돌아온다(_reflow). 그래서 많이↔적게, 수정↔보기를
+ * 몇 번 오가도 배치가 그대로고, 밀림은 실행취소·저장에도 안 남는다. 겹침 판정·스냅·관계선은 화면 위치(rects).
+ * 텍스트 박스(kind "text")는 크기를 모델에 들고 있고(모서리 손잡이로 조절), 상자 아무 데나 잡고 끈다.
+ * 라벨처럼 덱 위·옆에 붙여 쓰는 것이라 겹침 방지에서는 빠진다(텍스트 박스도, 덱도 서로 막지 않음).
  */
 export class DeckRenderer {
   constructor({ model, store, decksEl, guidesEl, camera, trashEl, onInput, onAction, onSelect, onMove, onToggleOwned }) {
@@ -31,7 +44,7 @@ export class DeckRenderer {
     this.onToggleOwned = onToggleOwned; // 보유 체크 모드에서 리스트 장수·전법 칸을 누를 때(종류, 이름)
 
     this.boardEls = new Map(); // deckId -> element
-    this.boardDrags = new Map(); // deckId -> DragController(헤더)
+    this.boardDrags = new Map(); // deckId -> DragController[](헤더 / 텍스트 박스는 상자 + 모서리 손잡이 둘)
     this.portraitUrls = new Map(); // portraitId -> objectURL
     this._loadingPortraits = new Set();
     this.selectedId = null;
@@ -45,39 +58,14 @@ export class DeckRenderer {
     this.owned = { general: new Set(), tactic: new Set() };
     this.ownedMode = false;
 
-    // 표시 단계·수정/보기 전환마다 "그 화면에서의 덱 y 위치"를 기억해 둔다(키: _layoutKey()) — 많이로
-    // 바꿔 밀려 내려간 덱이 적게로 돌아오면 원래 자리로 돌아가게. 사용자가 덱을 옮기거나 더하거나
-    // 빼면(전환 때문이 아닌 위치 변화) 기억은 전부 버린다 — 그 뒤로는 지금 자리가 기준.
-    this._layoutMemo = new Map(); // layoutKey -> Map(deckId -> y)
-    this._layoutBusy = false; // 전환 때문에 덱을 옮기는 중(이때의 위치 변화는 기억을 안 버림)
-    this._posSeen = new Map(); // deckId -> "x,y" — 마지막으로 본 위치(위치가 바뀐 update인지 가리기용)
+    // 화면 밀림 — deckId -> 제자리(deck.y)에서 아래로 얼마나 내려 보여주는지(px, 0 이상). 덱 높이가
+    // 바뀌면(내용·표시 단계·수정/보기, 글꼴 로딩까지) ResizeObserver가 _reflow를 다시 부른다.
+    this.offsets = new Map();
+    this._anim = null; // 밀림 애니메이션 { from, to, start, raf }
+    this._reflowQueued = false;
+    this._resizeObserver = new ResizeObserver(() => this._scheduleReflow());
 
-    model.onChange((type, payload) => {
-      this._trackLayout(type, payload);
-      this._handle(type, payload);
-    });
-  }
-
-  _trackLayout(type, payload) {
-    const posKey = (d) => `${d.x},${d.y}`;
-    if (type === "reset") {
-      this._layoutMemo.clear();
-      this._posSeen = new Map([...this.model.decks.values()].map((d) => [d.id, posKey(d)]));
-      return;
-    }
-    if (type === "deck:remove") {
-      this._posSeen.delete(payload);
-      if (!this._layoutBusy) this._layoutMemo.clear();
-      return;
-    }
-    if (type !== "deck:add" && type !== "deck:update") return;
-    const moved = this._posSeen.get(payload.id) !== posKey(payload);
-    this._posSeen.set(payload.id, posKey(payload));
-    if (moved && !this._layoutBusy) this._layoutMemo.clear();
-  }
-
-  _layoutKey() {
-    return `${this.decksEl.dataset.view}|${this.editable ? "edit" : "view"}`;
+    model.onChange((type, payload) => this._handle(type, payload));
   }
 
   _handle(type, payload) {
@@ -90,9 +78,12 @@ export class DeckRenderer {
     if ((type === "deck:add" || type === "deck:update") && payload.kind === "list" || type === "deck:remove") {
       for (const d of this.model.decks.values()) if (d.kind !== "list") this._sync(d);
     }
+    if (type === "reset") this._reflow({ animate: false });
+    else if (type.startsWith("deck:")) this._reflow();
   }
 
   renderAll() {
+    this._stopAnim();
     for (const id of [...this.boardEls.keys()]) this._remove(id);
     for (const deck of this.model.decks.values()) this._add(deck);
   }
@@ -107,23 +98,30 @@ export class DeckRenderer {
         else this.toggleHighlight(type, name, opts);
       },
     };
-    const el = deck.kind === "list" ? createListBoard(deck, handlers) : createDeckBoard(deck, handlers);
-    positionDeckBoard(el, deck);
+    const el = deck.kind === "list" ? createListBoard(deck, handlers)
+      : deck.kind === "text" ? createTextBoard(deck, handlers)
+      : createDeckBoard(deck, handlers);
     this.decksEl.append(el);
     this.boardEls.set(deck.id, el);
-    this._attachDrag(deck.id, el);
+    this._place(deck);
+    this._resizeObserver.observe(el);
+    if (deck.kind === "text") this._attachTextDrag(deck.id, el);
+    else this._attachDrag(deck.id, el);
     // 덱 필드 아무 곳이나 누르면 선택(헤더 드래그와 별개로, 입력칸을 눌러도 선택은 됨).
     el.addEventListener("pointerdown", () => this.setSelected(deck.id));
     this._sync(deck);
   }
 
   _update(deck) {
-    const el = this.boardEls.get(deck.id);
-    if (!el) return;
-    const oldHeight = el.offsetHeight;
-    positionDeckBoard(el, deck);
+    if (!this.boardEls.has(deck.id)) return;
+    this._place(deck);
     this._sync(deck);
-    if (el.offsetHeight > oldHeight) this._resolveGrowth(new Map([[deck.id, oldHeight]]));
+  }
+
+  /** 화면 위치 = 제자리 + 밀림. */
+  _place(deck) {
+    const el = this.boardEls.get(deck.id);
+    if (el) positionDeckBoard(el, { x: deck.x, y: deck.y + (this.offsets.get(deck.id) || 0) });
   }
 
   /** 표시 단계("full" | "normal" | "compact") — 덱 필드 안에서 어느 칸까지 보일지(style.css의
@@ -140,67 +138,123 @@ export class DeckRenderer {
     if (!editable) this.setSelected(null);
   }
 
-  /** 덱 높이를 바꿀 수 있는 화면 변경(fn)을 적용한다 — 그 결과 길어진 덱이 아래 덱과 겹치면 밀어낸다.
-   * 단, 이 화면(표시 단계·수정/보기)을 전에 본 적이 있고 그 뒤로 덱을 옮기지 않았으면, 밀어내는 대신
-   * 그때의 자리로 되돌린다 — 그래야 적게→많이→적게처럼 왔다 갔다 해도 배치가 그대로다. */
+  /** 덱 높이를 바꿀 수 있는 화면 변경(fn)을 적용한다 — 길어진 덱이 아래 덱에 닿으면 화면에서만 밀고,
+   * 짧아지면 제자리로(_reflow). 덱 위치(모델)는 안 바뀐다. */
   changeLayout(fn) {
-    const before = this._layoutKey();
-    const oldHeights = new Map(this.rects().map((r) => [r.id, r.height]));
     closeAllTactics();
-    this._layoutMemo.set(before, new Map([...this.model.decks.values()].map((d) => [d.id, d.y])));
     fn();
-    const after = this._layoutKey();
-    const memo = after !== before ? this._layoutMemo.get(after) : null;
-    const decks = [...this.model.decks.values()];
-    this._layoutBusy = true;
-    try {
-      if (memo && memo.size === decks.length && decks.every((d) => memo.has(d.id))) {
-        for (const d of decks) if (d.y !== memo.get(d.id)) this.model.updateDeck(d.id, { y: memo.get(d.id) });
-      } else {
-        this._resolveGrowth(oldHeights);
-      }
-    } finally {
-      this._layoutBusy = false;
-    }
+    this._reflow();
   }
 
-  /** 덱 높이가 늘어(장비/탈것 칩 줄바꿈, 보기 모드 변경 등) 아래 덱과 겹치게 되면 그 덱을 원래
-   * 간격을 유지한 채 아래로 민다. oldHeights: 늘어나기 전 높이(목록에 없는 덱은 안 변한 것으로 침).
-   * 위에서부터 차례로 보며, 원래 "완전히 아래"에 있던 덱이 이제 겹치면 밀고 — 밀린 덱도 순서가
-   * 오면 다시 자기 아래를 민다(연쇄). 모델 변경이라 높이를 늘린 동작과 같은 실행취소 단위로 묶인다. */
-  _resolveGrowth(oldHeights) {
-    const rects = this.rects();
-    const orig = new Map(rects.map((r) => [r.id, { y: r.y, h: oldHeights.get(r.id) ?? r.height }]));
-    const pos = new Map(rects.map((r) => [r.id, r.y]));
-    const sorted = [...rects].sort((a, b) => a.y - b.y);
-    for (const d of sorted) {
-      const o = orig.get(d.id);
-      const bottom = pos.get(d.id) + d.height;
-      for (const e of sorted) {
-        if (e === d) continue;
-        const eo = orig.get(e.id);
-        if (eo.y < o.y + o.h) continue; // 원래 d보다 완전히 아래에 있던 덱만(옆에 있거나 이미 겹쳐 있던 건 제외)
-        if (e.x >= d.x + d.width || e.x + e.width <= d.x) continue; // 가로로 안 겹치면 상관없음
-        if (pos.get(e.id) >= bottom) continue; // 아직 안 겹침
-        pos.set(e.id, bottom + (eo.y - (o.y + o.h)));
+  // ---------- 화면 밀림(제자리는 그대로) ----------
+
+  _scheduleReflow() {
+    if (this._reflowQueued) return;
+    this._reflowQueued = true;
+    requestAnimationFrame(() => {
+      this._reflowQueued = false;
+      this._reflow();
+    });
+  }
+
+  /** 제자리(deck.x/y)와 지금 높이로 화면 위치를 다시 계산한다. 위에서부터 차례로, 가로로 겹치는 위쪽 덱의
+   * (화면상) 아래 끝 + REFLOW_GAP보다 위에 있으면 그만큼만 내린다 — 닿지 않으면 제자리. 텍스트 박스는
+   * 밀지도 밀리지도 않고, 겹쳐 있거나 바로 아래에 있는 덱을 따라 같이 내려간다(라벨이 떨어지지 않게).
+   * 끄는 중에는 미뤄 뒀다가 놓을 때(모델 변경) 다시 계산한다. */
+  _reflow({ animate = true } = {}) {
+    if (this._drag) return;
+    const items = [];
+    for (const deck of this.model.decks.values()) {
+      const el = this.boardEls.get(deck.id);
+      if (el) items.push({ id: deck.id, kind: deck.kind, x: deck.x, y: deck.y, w: el.offsetWidth, h: el.offsetHeight });
+    }
+    const target = new Map();
+    const solids = items.filter((it) => it.kind !== "text").sort((a, b) => a.y - b.y);
+    const placed = [];
+    for (const it of solids) {
+      let y = it.y;
+      for (const p of placed) {
+        if (p.x >= it.x + it.w || p.x + p.w <= it.x) continue; // 가로로 안 겹치면 상관없음
+        y = Math.max(y, p.dispY + p.h + REFLOW_GAP);
       }
+      it.dispY = y;
+      placed.push(it);
+      target.set(it.id, y - it.y);
     }
-    for (const r of rects) {
-      if (pos.get(r.id) !== r.y) this.model.updateDeck(r.id, { y: pos.get(r.id) });
+    for (const t of items) {
+      if (t.kind !== "text") continue;
+      const anchor = textAnchor(t, solids);
+      target.set(t.id, anchor ? target.get(anchor.id) : 0);
     }
+    this._animateOffsets(target, animate);
+  }
+
+  _animateOffsets(target, animate) {
+    // 진행 중이던 애니메이션은 지금 위치에서 멈추고 거기서부터 새 목표로 간다.
+    this._stopAnim({ snap: false });
+    const from = new Map();
+    let changed = false;
+    for (const [id, to] of target) {
+      const cur = this.offsets.get(id) || 0;
+      from.set(id, cur);
+      if (Math.abs(cur - to) > 0.5) changed = true;
+    }
+    for (const id of [...this.offsets.keys()]) if (!target.has(id)) this.offsets.delete(id);
+    if (!changed) return;
+    if (!animate) {
+      for (const [id, to] of target) this.offsets.set(id, to);
+      this._placeAll();
+      return;
+    }
+    const anim = { from, to: target, start: performance.now(), raf: 0 };
+    const step = (now) => {
+      const t = Math.min(1, (now - anim.start) / REFLOW_ANIM_MS);
+      const e = 1 - (1 - t) ** 3;
+      for (const [id, to] of anim.to) this.offsets.set(id, anim.from.get(id) + (to - anim.from.get(id)) * e);
+      this._placeAll();
+      if (t < 1) anim.raf = requestAnimationFrame(step);
+      else this._anim = null;
+    };
+    this._anim = anim;
+    anim.raf = requestAnimationFrame(step);
+  }
+
+  /** snap: true면 목표 위치로 바로(새로 그리기·끌기 시작 전), false면 지금 위치에서 멈춘다. */
+  _stopAnim({ snap = true } = {}) {
+    if (!this._anim) return;
+    cancelAnimationFrame(this._anim.raf);
+    if (snap) {
+      for (const [id, to] of this._anim.to) this.offsets.set(id, to);
+      this._placeAll();
+    }
+    this._anim = null;
+  }
+
+  /** 모든 덱을 화면 위치로 + 관계선도 따라오게. */
+  _placeAll() {
+    for (const deck of this.model.decks.values()) this._place(deck);
+    this.onMove?.();
   }
 
   _remove(id) {
-    this.boardDrags.get(id)?.destroy();
+    this.boardDrags.get(id)?.forEach((d) => d.destroy());
     this.boardDrags.delete(id);
-    this.boardEls.get(id)?.remove();
+    const el = this.boardEls.get(id);
+    if (el) this._resizeObserver.unobserve(el);
+    el?.remove();
     this.boardEls.delete(id);
+    this.offsets.delete(id);
     if (this.selectedId === id) this.setSelected(null);
   }
 
   _sync(deck) {
     const el = this.boardEls.get(deck.id);
     const portraitUrlFor = (pid) => this._portraitUrl(pid, deck.id);
+    if (deck.kind === "text") {
+      syncTextBoard(el, deck);
+      setBoardEditable(el, this.editable);
+      return;
+    }
     if (deck.kind === "list") syncListBoard(el, deck, portraitUrlFor);
     else syncDeckBoard(el, deck, portraitUrlFor, this._listPortraitIndex());
     setBoardEditable(el, this.editable);
@@ -246,6 +300,7 @@ export class DeckRenderer {
       node.classList.toggle("owned", st === "owned");
       node.classList.toggle("unowned", st === "unowned");
     };
+    if (deck.kind === "text") return;
     if (deck.kind === "list") {
       el.querySelectorAll(".list-general").forEach((item, i) => mark(item, state("general", deck.listGenerals[i]?.name)));
       el.querySelectorAll(".list-tactic").forEach((item, i) => mark(item, state("tactic", deck.listTactics[i])));
@@ -285,6 +340,7 @@ export class DeckRenderer {
   _applyHighlight(el, deck) {
     const hl = this.highlight;
     const match = (type, name) => !!hl && hl.type === type && generalKey(name) === hl.key;
+    if (deck.kind === "text") return;
     if (deck.kind === "list") {
       el.querySelectorAll(".list-general").forEach((item, i) => item.classList.toggle("name-hl", match("general", deck.listGenerals[i]?.name)));
       el.querySelectorAll(".list-tactic").forEach((item, i) => item.classList.toggle("name-hl", match("tactic", deck.listTactics[i])));
@@ -341,7 +397,7 @@ export class DeckRenderer {
     this.onSelect?.(id);
   }
 
-  /** 겹침 판정·스냅·전체보기에 쓰는 사각형들(크기는 DOM 실측, 줌과 무관한 CSS px).
+  /** 겹침 판정·스냅·전체보기에 쓰는 사각형들(크기는 DOM 실측, 줌과 무관한 CSS px). 위치는 화면 위치(밀림 포함).
    * anchorY = 관계선 기준점 높이 — "비고 줄이 다 보일 때(많이/보통)의 장수 초상화 세로 가운데". 적게에서는
    * 비고 줄이 접혀 초상화가 올라가지만 기준점은 그대로 둬서, 표시 단계를 바꿔도 관계선이 안 움직인다. */
   rects() {
@@ -349,12 +405,13 @@ export class DeckRenderer {
     for (const deck of this.model.decks.values()) {
       const el = this.boardEls.get(deck.id);
       if (!el) continue;
-      // 리스트에는 장수 카드가 없으니 헤더(시즌 제목) 높이에 건다.
+      // 리스트에는 장수 카드가 없으니 헤더(시즌 제목) 높이에 건다. 텍스트 박스는 상자 세로 가운데(헤더는
+      // 상자 위에 떠 있어서 기준으로 안 씀).
       const portrait = el.querySelector(".general-card .portrait");
-      const anchorEl = portrait || el.querySelector(".deck-header");
+      const anchorEl = deck.kind === "text" ? null : portrait || el.querySelector(".deck-header");
       let anchorY = anchorEl ? offsetTopWithin(anchorEl, el) + anchorEl.offsetHeight / 2 : el.offsetHeight / 2;
       if (portrait) anchorY += collapsedNotesHeight(el);
-      out.push({ id: deck.id, x: deck.x, y: deck.y, width: el.offsetWidth, height: el.offsetHeight, anchorY });
+      out.push({ id: deck.id, kind: deck.kind, x: deck.x, y: deck.y + (this.offsets.get(deck.id) || 0), width: el.offsetWidth, height: el.offsetHeight, anchorY });
     }
     return out;
   }
@@ -370,8 +427,10 @@ export class DeckRenderer {
     };
   }
 
-  /** 새 필드 크기(빈 자리 찾기용) — 같은 종류("deck" | "list")가 이미 있으면 그걸 재고, 없으면 대략값. */
+  /** 새 필드 크기(빈 자리 찾기용) — 같은 종류("deck" | "list")가 이미 있으면 그걸 재고, 없으면 대략값.
+   * 텍스트 박스는 크기가 모델 값이라 기본 크기. */
   measureBoardSize(kind = "deck") {
+    if (kind === "text") return { width: TEXT_BOX_DEFAULTS.width, height: TEXT_BOX_DEFAULTS.height };
     for (const [id, el] of this.boardEls) {
       if ((this.model.decks.get(id)?.kind || "deck") === kind) return { width: el.offsetWidth, height: el.offsetHeight };
     }
@@ -393,7 +452,59 @@ export class DeckRenderer {
       onDragMove: (dx, dy, e) => this._moveDrag(dx / this.camera.scale, dy / this.camera.scale, e),
       onDragEnd: (e) => this._endDrag(e),
     });
-    this.boardDrags.set(id, drag);
+    this.boardDrags.set(id, [drag]);
+  }
+
+  /** 텍스트 박스 — 상자 아무 데나 잡고 끌면 이동, 끌지 않고 누르면 글자 입력. 입력 중(textarea 포커스)일
+   * 때는 글자 위에서 끌면 글자 선택이라 이동은 헤더(⠿)·테두리로만. 모서리 손잡이는 크기 조절. */
+  _attachTextDrag(id, el) {
+    const move = new DragController(el, {
+      filter: (e) => this.editable && !e.target.closest("button, .text-resize") &&
+        !(el.classList.contains("editing") && e.target.closest("textarea")),
+      onDragStart: () => this._beginDrag(id),
+      onDragMove: (dx, dy, e) => this._moveDrag(dx / this.camera.scale, dy / this.camera.scale, e),
+      onDragEnd: (e) => this._endDrag(e),
+      onClick: (e) => { if (!e.target.closest(".deck-header")) focusTextBoard(el); },
+    });
+    const resizers = [...el.querySelectorAll(".text-resize")].map((handle) => this._attachResize(id, el, handle));
+    this.boardDrags.set(id, [move, ...resizers]);
+  }
+
+  /** 모서리 손잡이 — 글자 크기는 그대로 두고 상자 폭/높이만. 오른쪽 아래(br)는 왼쪽 위가 고정, 왼쪽 위(tl)는
+   * 오른쪽 아래가 고정이라 x/y도 같이 바뀐다. 끄는 동안은 직접 옮기고 끝날 때 한 번만 모델에 반영(실행취소 한 번). */
+  _attachResize(id, el, handle) {
+    const tl = handle.dataset.corner === "tl";
+    let g = null;
+    return new DragController(handle, {
+      filter: () => this.editable && !this.model.decks.get(id)?.locked,
+      onDragStart: () => {
+        const d = this.model.decks.get(id);
+        if (!d) return;
+        g = { x: d.x, y: d.y, width: d.width, height: d.height, dx: 0, dy: 0 };
+        el.classList.add("resizing");
+      },
+      onDragMove: (dx, dy) => {
+        const d = this.model.decks.get(id);
+        if (!g || !d) return;
+        g.dx += dx / this.camera.scale;
+        g.dy += dy / this.camera.scale;
+        const w = Math.max(TEXT_BOX_MIN.width, g.width + (tl ? -g.dx : g.dx));
+        const h = Math.max(TEXT_BOX_MIN.height, g.height + (tl ? -g.dy : g.dy));
+        Object.assign(d, { width: w, height: h, x: tl ? g.x + g.width - w : g.x, y: tl ? g.y + g.height - h : g.y });
+        sizeTextBoard(el, d);
+        this._place(d);
+        this.onMove?.();
+      },
+      onDragEnd: () => {
+        const d = this.model.decks.get(id);
+        el.classList.remove("resizing");
+        if (!g || !d) return;
+        const next = { x: d.x, y: d.y, width: Math.round(d.width), height: Math.round(d.height) };
+        Object.assign(d, { x: g.x, y: g.y, width: g.width, height: g.height });
+        g = null;
+        this.model.updateDeck(id, next);
+      },
+    });
   }
 
   _beginDrag(id) {
@@ -407,10 +518,16 @@ export class DeckRenderer {
       return;
     }
     const el = this.boardEls.get(id);
+    this._stopAnim();
+    // 밀려 내려가 보이던 덱은 보이는 자리에서 끌기 시작한다(끄는 동안은 제자리 = 보이는 자리).
+    const off = this.offsets.get(id) || 0;
     this._drag = {
-      id, startX: deck.x, startY: deck.y, dx: 0, dy: 0,
+      id, startX: deck.x, startY: deck.y + off, homeY: deck.y, dx: 0, dy: 0,
       width: el.offsetWidth, height: el.offsetHeight,
+      free: deck.kind === "text", // 텍스트 박스는 겹침 방지 없이 아무 데나
     };
+    deck.y += off;
+    this.offsets.set(id, 0);
     el.classList.add("dragging");
     this.trashEl?.classList.add("visible");
   }
@@ -436,8 +553,10 @@ export class DeckRenderer {
     // 다른 덱 필드와 겹치는 자리로는 못 간다 — 한 축만 막히면 그 축만 멈춰서 벽을 타고 미끄러지듯,
     // 둘 다 막히면 그 자리에 멈춘다(가계도 필드와 같은 규칙). 단, 이미 겹쳐 있는 상태(예: 다른
     // 기기에서 가져온 데이터)라면 막지 않는다 — 그래야 겹친 덱을 빼낼 수 있다.
-    const collides = (x, y) => rectCollides(others, g.width, g.height, x, y, null);
-    if (collides(nx, ny) && !collides(deck.x, deck.y)) {
+    // 텍스트 박스는 막지도 막히지도 않는다(라벨처럼 덱 위에 얹어 쓸 수 있게).
+    const solid = others.filter((r) => r.kind !== "text");
+    const collides = (x, y) => rectCollides(solid, g.width, g.height, x, y, null);
+    if (!g.free && collides(nx, ny) && !collides(deck.x, deck.y)) {
       const xOk = !collides(nx, deck.y);
       const yOk = !collides(deck.x, ny);
       if (xOk && !yOk) { ny = deck.y; guideY = null; }
@@ -447,7 +566,7 @@ export class DeckRenderer {
     // 드래그 중엔 모델 이벤트(=실행취소 스냅샷·자동저장)를 쏘지 않고 직접 옮긴다 — 끝날 때 한 번만 반영.
     deck.x = nx;
     deck.y = ny;
-    positionDeckBoard(this.boardEls.get(g.id), deck);
+    this._place(deck);
     this.onMove?.();
     this._setGuides(guideX, guideY, snapped.extraGuides);
     this._setTrashArmed(this._isOverTrash(e.clientX, e.clientY));
@@ -467,15 +586,16 @@ export class DeckRenderer {
     if (this._isOverTrash(e.clientX, e.clientY)) {
       // 위치를 원래대로 돌려둔 뒤 지운다 — 실행취소하면 원래 자리에 다시 나타나게.
       deck.x = g.startX;
-      deck.y = g.startY;
+      deck.y = g.homeY;
       this.model.removeDeck(g.id);
       return;
     }
+    // 옮겼으면 놓은 자리(화면 위치)가 새 제자리. 안 옮겼으면 원래 제자리로 되돌리고 밀림을 다시 계산.
     const { x, y } = deck;
     deck.x = g.startX;
-    deck.y = g.startY;
+    deck.y = g.homeY;
     if (x !== g.startX || y !== g.startY) this.model.updateDeck(g.id, { x, y });
-    else positionDeckBoard(el, deck);
+    else this._reflow({ animate: false });
   }
 
   _isOverTrash(clientX, clientY) {
@@ -537,4 +657,24 @@ function collapsedNotesHeight(boardEl) {
   const full = (parseFloat(getComputedStyle(notes).height) || 0) + gap;
   const now = row.offsetHeight ? row.offsetHeight + gap : 0;
   return Math.max(0, full - now);
+}
+
+/** 텍스트 박스가 따라 움직일 덱 — 겹쳐 있는 덱(가장 많이 겹친 것), 없으면 바로 아래(가로로 겹치고 아래 끝에서
+ * TEXT_ATTACH_GAP 안쪽)에서 가장 가까운 덱. 둘 다 없으면 null(제자리 고정). 위치는 전부 제자리 기준. */
+function textAnchor(t, solids) {
+  let best = null;
+  let bestArea = 0;
+  for (const s of solids) {
+    const w = Math.min(t.x + t.w, s.x + s.w) - Math.max(t.x, s.x);
+    const h = Math.min(t.y + t.h, s.y + s.h) - Math.max(t.y, s.y);
+    if (w > 0 && h > 0 && w * h > bestArea) { best = s; bestArea = w * h; }
+  }
+  if (best) return best;
+  let bestDist = Infinity;
+  for (const s of solids) {
+    if (s.x >= t.x + t.w || s.x + s.w <= t.x) continue;
+    const dist = s.y - (t.y + t.h);
+    if (dist >= 0 && dist <= TEXT_ATTACH_GAP && dist < bestDist) { best = s; bestDist = dist; }
+  }
+  return best;
 }

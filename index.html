@@ -49,6 +49,13 @@
       <button type="button" data-menu="duplicate">복제</button>
       <button type="button" data-menu="export-deck">이 덱 JSON으로 내보내기</button>
       <button type="button" data-menu="toggle-lock">위치 잠금</button>
+      <div class="deck-menu-font" data-text-only hidden>
+        <span>글자 크기</span>
+        <button type="button" data-menu="font-down" title="글자 작게" aria-label="글자 작게">−</button>
+        <span class="deck-menu-font-size">20px</span>
+        <button type="button" data-menu="font-up" title="글자 크게" aria-label="글자 크게">+</button>
+      </div>
+      <button type="button" data-menu="toggle-bg" data-text-only hidden>배경 끄기 (글자만)</button>
       <div class="deck-menu-tints" role="group" aria-label="배경색"><span>배경색</span></div>
       <button type="button" data-menu="delete" class="danger">삭제</button>
     </div>
