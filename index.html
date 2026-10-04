@@ -27,10 +27,11 @@
 
     <main id="viewport">
       <div id="stage">
-        <div id="decks-layer"></div>
-        <!-- 덱끼리의 관계선 — 덱 테두리에서 테두리까지라 보통은 빈 공간에만 그려지지만, 덱이 가까우면
-             라벨이 덱 위에 올 수 있어서 덱보다 위에 둔다(라벨이 가려지거나 못 누르는 일이 없게). -->
+        <!-- 아래부터: 필드(덱 묶음 판) → 관계선 → 덱·리스트·텍스트 박스 → 정렬 안내선.
+             관계선(화살표 등)은 덱 뒤에 깔리고, 필드보다는 위라 필드 안에서도 보인다. -->
+        <div id="fields-layer"></div>
         <svg id="rels-layer"></svg>
+        <div id="decks-layer"></div>
         <svg id="lines-layer"></svg>
       </div>
       <div id="empty-hint">

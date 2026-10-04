@@ -33,7 +33,8 @@
 
 /* ---------- 캔버스 ---------- */
 
-#decks-layer {
+#decks-layer,
+#fields-layer {
   position: absolute;
   left: 0;
   top: 0;
@@ -818,7 +819,7 @@
 .deck-board.text-board.no-bg.editing { border-color: var(--accent); border-style: dashed; box-shadow: none; }
 
 /* 헤더(⠿ · 🔒 · ⋯) — 상자 위쪽에 떠 있다(크기 계산에 안 들어가게). 수정 모드에서 올리거나 선택했을 때만. */
-.deck-board .text-header {
+.deck-board .float-header {
   position: absolute;
   left: 14px; /* 왼쪽 위 모서리 손잡이와 안 겹치게 */
   bottom: 100%;
@@ -828,21 +829,23 @@
   pointer-events: none;
   transition: opacity 0.1s ease;
 }
-.deck-board.text-board:hover .text-header,
-.deck-board.text-board.selected .text-header {
+.deck-board.text-board:hover .float-header,
+.deck-board.text-board.selected .float-header,
+.deck-board.field-board:hover .float-header,
+.deck-board.field-board.selected .float-header {
   opacity: 1;
   pointer-events: auto;
 }
-.deck-board .text-header .deck-grip,
-.deck-board .text-header .deck-menu-btn,
-.deck-board .text-header .deck-lock-mark {
+.deck-board .float-header .deck-grip,
+.deck-board .float-header .deck-menu-btn,
+.deck-board .float-header .deck-lock-mark {
   background: var(--panel-bg);
   border: 1px solid var(--border);
   border-radius: 6px;
 }
 
 /* 모서리 손잡이 — 선택했을 때만 보이고 그때만 잡힌다(Gagedo와 같은 생김새) */
-.text-resize {
+.box-resize {
   position: absolute;
   width: 16px;
   height: 16px;
@@ -858,13 +861,43 @@
   pointer-events: none;
   transition: opacity 0.1s ease;
 }
-.text-resize-tl { left: -7px; top: -7px; }
-.text-resize-br { right: -7px; bottom: -7px; }
-.deck-board.text-board.selected:not(.locked) .text-resize { opacity: 1; pointer-events: auto; }
+.box-resize-tl { left: -7px; top: -7px; }
+.box-resize-br { right: -7px; bottom: -7px; }
+.deck-board.text-board.selected:not(.locked) .box-resize,
+.deck-board.field-board.selected:not(.locked) .box-resize { opacity: 1; pointer-events: auto; }
 
-#app[data-ui-mode="view"] .text-header,
-#app[data-ui-mode="view"] .text-resize { display: none; }
+#app[data-ui-mode="view"] .float-header,
+#app[data-ui-mode="view"] .box-resize { display: none; }
 #app[data-ui-mode="view"] .deck-board.text-board.no-bg { border-color: transparent; }
+
+/* ---------- 필드(kind "field", ui/FieldBoard.js) ----------
+   Gagedo 필드와 같은 생김새 — 점선 테두리 + 옅은 배경의 빈 둥근 사각형. 덱들 밑에 깔리고(레이어 맨 앞),
+   크기는 JS가 width/height로. 배경색(⋯ → 배경색)을 고르면 그 옅은 색으로 칠한다. */
+.deck-board.field-board {
+  width: auto;
+  padding: 0;
+  gap: 0;
+  border: 2px dashed color-mix(in srgb, var(--muted) 55%, transparent);
+  border-radius: 16px;
+  box-shadow: none;
+  touch-action: none;
+  cursor: grab;
+  transition: border-color 0.15s ease;
+}
+/* 배경색을 안 골랐을 때만 옅은 회색 — 고르면 .deck-board[data-tint]의 색 */
+.deck-board.field-board:not([data-tint]) { background: color-mix(in srgb, var(--border) 45%, transparent); }
+.deck-board.field-board.dragging { cursor: grabbing; box-shadow: none; z-index: auto; } /* 끄는 중에도 덱들 밑 */
+.deck-board.field-board.locked { cursor: default; }
+#app:not([data-ui-mode="view"]) .deck-board.field-board:hover { border-color: var(--accent); }
+.deck-board.field-board.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent), 0 2px 12px var(--accent-glow);
+}
+.deck-board.field-board.drag-locked-preview { opacity: 0.4; }
+/* 덱이 올라간 필드는 크기가 저절로 맞춰지니 크기 손잡이 없음(빈 필드만) */
+.deck-board.field-board.has-members .box-resize { display: none; }
+#app[data-ui-mode="view"] .deck-board.field-board { cursor: grab; }
+#app[data-ui-mode="view"] .deck-board.field-board.selected { border-color: var(--border); box-shadow: none; }
 
 /* ---------- 덱 ⋯ 메뉴(화면 고정 위치) ---------- */
 
@@ -1040,8 +1073,8 @@
 #app[data-public] .save-indicator { display: none; }
 
 /* ---------- 덱끼리 관계선 ----------
-   선 모양·라벨은 가계도 style.css의 .rel-line-* 규칙을 그대로 쓴다. 덱 필드보다 위(드래그 중인 덱과
-   대체 전법을 펼친 덱은 z-index로 그보다 더 위)에 그린다. */
+   선 모양·라벨은 가계도 style.css의 .rel-line-* 규칙을 그대로 쓴다. 덱 뒤(필드 위)에 깔린다 — index.html의
+   레이어 순서(필드 → 관계선 → 덱). */
 #rels-layer {
   position: absolute;
   left: 0;

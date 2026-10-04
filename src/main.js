@@ -17,6 +17,7 @@ import { initNameSuggest } from "./ui/NameSuggest.js";
 const viewportEl = document.getElementById("viewport");
 const stageEl = document.getElementById("stage");
 const decksEl = document.getElementById("decks-layer");
+const fieldsEl = document.getElementById("fields-layer");
 const guidesEl = document.getElementById("lines-layer");
 const toolbarEl = document.getElementById("toolbar");
 const emptyHintEl = document.getElementById("empty-hint");
@@ -56,7 +57,7 @@ const camera = new Camera(viewportEl, stageEl, {
 });
 
 const renderer = new DeckRenderer({
-  model, store, decksEl, guidesEl, camera, trashEl,
+  model, store, decksEl, fieldsEl, guidesEl, camera, trashEl,
   onInput: (deckId, path, value) => model.setPath(deckId, path, value),
   onAction: handleDeckAction,
   onMove: () => relations?.refresh(),
@@ -251,7 +252,7 @@ function pickConnectDeck(deckId) {
 let swallowNextClick = false;
 decksEl.addEventListener("pointerdown", (e) => {
   if (!connect) return;
-  const board = e.target.closest(".deck-board");
+  const board = e.target.closest(".deck-board:not(.field-board)"); // 필드는 관계선 대상이 아님
   if (!board) return;
   e.preventDefault();
   e.stopPropagation();
@@ -381,9 +382,9 @@ function viewportCenterWorld() {
  * 텍스트 박스는 겹쳐도 되는 라벨이라 빈 자리를 찾지 않고 그 자리에 그대로. */
 function placeDeck(content, near = null) {
   const isText = content.kind === "text";
-  const { width, height } = isText
-    ? { width: content.width ?? renderer.measureBoardSize("text").width, height: content.height ?? renderer.measureBoardSize("text").height }
-    : renderer.measureBoardSize(content.kind === "list" ? "list" : "deck");
+  const sized = isText || content.kind === "field"; // 크기를 모델에 들고 있는 종류
+  const base = renderer.measureBoardSize(content.kind === "list" || sized ? content.kind : "deck");
+  const { width, height } = sized ? { width: content.width ?? base.width, height: content.height ?? base.height } : base;
   let x, y;
   if (near) {
     ({ x, y } = near);
@@ -392,7 +393,12 @@ function placeDeck(content, near = null) {
     x = c.x - width / 2;
     y = c.y - height / 2;
   }
-  const spot = isText ? { x: Math.round(x), y: Math.round(y) } : findGapSpot(renderer.rects(), width, height, x, y);
+  // 덱·리스트는 필드 위에도 놓일 수 있으니 필드는 장애물로 안 친다. 새 필드는 덱·다른 필드 전부를 피해서
+  // (그래야 놓자마자 엉뚱한 덱을 품지 않는다).
+  const obstacles = renderer.rects().filter((r) => content.kind === "field" || r.kind !== "field");
+  const spot = isText ? { x: Math.round(x), y: Math.round(y) } : findGapSpot(obstacles, width, height, x, y);
+  // 놓인 자리의 중심이 필드 안이면 그 필드 소속(필드 크기가 그 덱까지 감싸게 늘어난다).
+  if (content.kind !== "field") content.fieldId = renderer.fieldAt(spot.x + width / 2, spot.y + height / 2);
   const deck = model.addDeck(content, spot);
   ensureDeckVisible(deck);
   return deck;
@@ -589,6 +595,8 @@ function closeDeckMenu() {
 // 텍스트 박스 전용 — 글자 크기(−/+)는 메뉴를 닫지 않고 바로 반영, 배경 켜고 끄기.
 const FONT_STEPS = [8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 40, 48, 56, 64, 80, 96, 120];
 function syncTextMenu(deck) {
+  const isField = deck.kind === "field";
+  for (const n of deckMenuEl.querySelectorAll('[data-menu="save-template"], [data-menu="export-deck"]')) n.hidden = isField;
   const isText = deck.kind === "text";
   for (const n of deckMenuEl.querySelectorAll("[data-text-only]")) n.hidden = !isText;
   if (!isText) return;
@@ -630,6 +638,7 @@ document.addEventListener("pointerdown", (e) => {
 });
 
 function duplicateDeck(deck) {
+  if (deck.kind === "field") return duplicateField(deck);
   const el = renderer.boardEls.get(deck.id);
   const content = cloneDeckContent(deck);
   if (content.name) content.name = `${content.name} (복사본)`;
@@ -639,18 +648,47 @@ function duplicateDeck(deck) {
   renderer.setSelected(copy.id);
 }
 
+/** 필드 복제 — 소속된 덱·리스트·텍스트 박스까지 통째로, 오른쪽 빈 자리에(같은 배치 그대로). */
+function duplicateField(field) {
+  const memberIds = renderer.fieldMembers(field.id);
+  const rects = renderer.rects();
+  const r = renderer.fieldRect(field);
+  const spot = findGapSpot(rects, r.width, r.height, r.x + r.width + DECK_GAP, r.y);
+  const dx = spot.x - r.x;
+  const dy = spot.y - r.y;
+  const copy = model.addDeck({ ...cloneDeckContent(field), width: r.width, height: r.height }, spot);
+  for (const id of memberIds) {
+    const d = model.decks.get(id);
+    if (d) model.addDeck({ ...cloneDeckContent(d), fieldId: copy.id }, { x: d.x + dx, y: d.y + dy });
+  }
+  renderer.setSelected(copy.id);
+  ensureDeckVisible(copy);
+}
+
 /** 덱 이름(리스트면 시즌, 텍스트 박스면 첫 줄 앞부분) — 확인창·템플릿 이름·파일 이름에 쓴다. */
 function deckTitle(deck) {
   if (deck.kind === "text") return deck.text.trim().split("\n")[0].slice(0, 20);
+  if (deck.kind === "field") return "";
   return (deck.kind === "list" ? deck.season : deck.name) || "";
 }
 
 /** 확인창·메뉴 글자에 쓰는 종류 이름. */
 function kindNoun(deck) {
-  return deck.kind === "list" ? "리스트" : deck.kind === "text" ? "텍스트 박스" : "덱";
+  return { list: "리스트", text: "텍스트 박스", field: "필드" }[deck.kind] || "덱";
 }
 
 function deleteDeck(deck) {
+  if (deck.kind === "field") {
+    // 필드는 소속된 것까지 같이 지운다(Gagedo와 같음, 실행취소 한 번에 전부 돌아옴).
+    const memberIds = renderer.fieldMembers(deck.id);
+    const msg = memberIds.length
+      ? `필드와 그 위의 ${memberIds.length}개(덱·리스트·텍스트 박스)를 같이 삭제할까요? (실행취소로 되돌릴 수 있어요)`
+      : "이 필드를 삭제할까요? (실행취소로 되돌릴 수 있어요)";
+    if (!confirm(msg)) return;
+    for (const id of memberIds) model.removeDeck(id);
+    model.removeDeck(deck.id);
+    return;
+  }
   const noun = kindNoun(deck);
   const label = deckTitle(deck) ? `"${deckTitle(deck)}" ${noun}` : `이 ${noun}`;
   if (confirm(`${label}${noun === "덱" ? "을" : "를"} 삭제할까요? (실행취소로 되돌릴 수 있어요)`)) model.removeDeck(deck.id);
@@ -698,7 +736,7 @@ async function insertTemplate(id) {
 }
 
 /** 템플릿 메뉴 맨 위의 기본 템플릿 — "deck"(빈 덱 양식) / "list"(시즌 + 장수 목록 + 전법 목록) /
- * "text"(텍스트 박스). 놓은 뒤 제목 칸(덱 이름 / 시즌)에 바로 입력할 수 있게 포커스 — 텍스트 박스는
+ * "text"(텍스트 박스) / "field"(덱을 올려 두는 빈 필드, 화면 가운데 빈 자리에). 놓은 뒤 제목 칸(덱 이름 / 시즌)에 바로 입력할 수 있게 포커스 — 텍스트 박스는
  * 기본 글자("텍스트")를 통째로 골라 둬서 바로 덮어쓰게. */
 function insertBuiltinTemplate(kind) {
   if (uiMode === "view" || !DECK_KINDS.includes(kind)) return;
@@ -709,7 +747,7 @@ function insertBuiltinTemplate(kind) {
     const content = el?.querySelector(".text-content");
     content?.focus();
     content?.select();
-  } else {
+  } else if (kind !== "field") {
     el?.querySelector(".deck-name")?.focus();
   }
 }

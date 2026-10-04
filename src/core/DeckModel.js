@@ -32,15 +32,20 @@ export function emptyGeneral() {
 }
 
 /** 보드 위 필드 종류 — "deck" = 덱 양식(장수 3명), "list" = 리스트 템플릿(시즌 제목 + 장수 목록 +
- * 전법 목록, 개수 제한 없음), "text" = 자유 텍스트 박스(가계도 메이커 Gagedo의 텍스트 박스). 전부
- * model.decks에 같이 들어 있어서 드래그·스냅·관계선·⋯ 메뉴·실행취소·저장을 그대로 같이 쓴다. kind가
- * 없는 예전 데이터는 덱. */
-export const DECK_KINDS = ["deck", "list", "text"];
+ * 전법 목록, 개수 제한 없음), "text" = 자유 텍스트 박스(가계도 메이커 Gagedo의 텍스트 박스), "field" =
+ * 덱들을 올려 두는 빈 컨테이너(Gagedo의 필드 — 끌면 위에 올린 것이 같이 움직임). 전부 model.decks에
+ * 같이 들어 있어서 드래그·스냅·⋯ 메뉴·실행취소·저장을 그대로 같이 쓴다. kind가 없는 예전 데이터는 덱. */
+export const DECK_KINDS = ["deck", "list", "text", "field"];
 
 /** 텍스트 박스 기본값(Gagedo addTextBox와 같다) — 상자 크기(width/height)와 글자 크기는 따로 논다. */
 export const TEXT_BOX_DEFAULTS = { text: "텍스트", fontSize: 20, width: 200, height: 50 };
 export const TEXT_BOX_MIN = { width: 40, height: 24 };
 export const TEXT_FONT_RANGE = { min: 8, max: 120 };
+
+/** 필드 기본 크기(빈 필드일 때) — 덱(552px) 둘을 간격(300) 두고 나란히, 위아래로도 넉넉히. 덱이 올라가면
+ * 필드는 그 덱들을 감싸는 크기로 저절로 맞춰진다(DeckRenderer._fitFields). */
+export const FIELD_DEFAULTS = { width: 1500, height: 1100 };
+export const FIELD_MIN = { width: 300, height: 200 };
 
 /** 덱/리스트 배경색 — 색 값 대신 이름을 저장하고 실제 색은 style.css(--tint-*)가 정한다(다크 모드에서
  * 다른 색). null = 기본 배경. */
@@ -75,6 +80,7 @@ function normalizeList(deck) {
       portraitId: g?.portraitId ?? null,
     })),
     listTactics: (Array.isArray(deck.listTactics) ? deck.listTactics : []).map((t) => (typeof t === "string" ? t : "")),
+    fieldId: deck.fieldId ?? null,
     createdAt: deck.createdAt || Date.now(),
     updatedAt: deck.updatedAt || Date.now(),
   };
@@ -96,6 +102,23 @@ function normalizeText(deck) {
     width: num(deck.width, TEXT_BOX_DEFAULTS.width, TEXT_BOX_MIN.width),
     height: num(deck.height, TEXT_BOX_DEFAULTS.height, TEXT_BOX_MIN.height),
     background: deck.background !== false, // false = 배경·테두리 없이 글자만
+    fieldId: deck.fieldId ?? null,
+    createdAt: deck.createdAt || Date.now(),
+    updatedAt: deck.updatedAt || Date.now(),
+  };
+}
+
+function normalizeField(deck) {
+  const num = (v, fallback, min) => (Number.isFinite(v) ? Math.max(min, v) : fallback);
+  return {
+    id: deck.id || uuid(),
+    kind: "field",
+    x: deck.x ?? 0,
+    y: deck.y ?? 0,
+    locked: !!deck.locked,
+    tint: normalizeTint(deck.tint),
+    width: num(deck.width, FIELD_DEFAULTS.width, FIELD_MIN.width),
+    height: num(deck.height, FIELD_DEFAULTS.height, FIELD_MIN.height),
     createdAt: deck.createdAt || Date.now(),
     updatedAt: deck.updatedAt || Date.now(),
   };
@@ -104,6 +127,7 @@ function normalizeText(deck) {
 export function normalizeDeck(deck) {
   if (deck.kind === "list") return normalizeList(deck);
   if (deck.kind === "text") return normalizeText(deck);
+  if (deck.kind === "field") return normalizeField(deck);
   // 아는 항목만 골라 담는다 — 예전 양식에만 있던 값(장비/탈것 단일 선택, 속성치 숫자 등)은 버린다.
   const generals = Array.from({ length: GENERAL_COUNT }, (_, i) => {
     const src = deck.generals?.[i] || {};
@@ -141,6 +165,7 @@ export function normalizeDeck(deck) {
     formation: deck.formation ?? null,
     notes: deck.notes || "",
     generals,
+    fieldId: deck.fieldId ?? null, // 올라가 있는 필드(없으면 null) — 필드 크기는 소속 덱들에 맞춰진다
     createdAt: deck.createdAt || Date.now(),
     updatedAt: deck.updatedAt || Date.now(),
   };
@@ -162,9 +187,10 @@ export function normalizeRelation(rel) {
   };
 }
 
-/** 덱 내용만(위치/id/시각 없이) 깊은 복사 — 복제·템플릿 저장·내보내기에 쓴다. */
+/** 덱 내용만(위치/id/시각/소속 필드 없이) 깊은 복사 — 복제·템플릿 저장·내보내기에 쓴다. 소속 필드는
+ * 놓는 자리로 다시 정한다(main.js placeDeck). */
 export function cloneDeckContent(deck) {
-  const { id, x, y, locked, createdAt, updatedAt, ...content } = JSON.parse(JSON.stringify(deck));
+  const { id, x, y, locked, createdAt, updatedAt, fieldId, ...content } = JSON.parse(JSON.stringify(deck));
   return content;
 }
 

@@ -18,14 +18,14 @@ export function createTextBoard(deck, { onInput, onAction }) {
   el.className = "deck-board text-board";
   el.dataset.id = deck.id;
   el.innerHTML = `
-    <header class="deck-header text-header">
+    <header class="deck-header float-header">
       <span class="deck-grip" title="잡고 끌어서 옮기기" aria-hidden="true">⠿</span>
       <span class="deck-lock-mark" title="위치 잠김" aria-hidden="true">🔒</span>
       <button type="button" class="deck-menu-btn" data-act="menu" title="텍스트 박스 메뉴" aria-label="텍스트 박스 메뉴">⋯</button>
     </header>
     <textarea class="text-content" data-path="text" placeholder="텍스트" spellcheck="false"></textarea>
-    <div class="text-resize text-resize-tl" data-corner="tl" title="끌어서 상자 크기 조절(오른쪽 아래는 고정)" aria-hidden="true"></div>
-    <div class="text-resize text-resize-br" data-corner="br" title="끌어서 상자 크기 조절" aria-hidden="true"></div>
+    <div class="box-resize box-resize-tl" data-corner="tl" title="끌어서 상자 크기 조절(오른쪽 아래는 고정)" aria-hidden="true"></div>
+    <div class="box-resize box-resize-br" data-corner="br" title="끌어서 상자 크기 조절" aria-hidden="true"></div>
   `;
   const content = el.querySelector(".text-content");
 
