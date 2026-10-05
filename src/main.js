@@ -13,6 +13,7 @@ import { COLOR_PRESETS, LINE_STYLE_PRESETS } from "./lib/RelationshipLine.js";
 import { Toolbar } from "./ui/Toolbar.js";
 import { closeAllTactics } from "./ui/DeckBoard.js";
 import { initNameSuggest } from "./ui/NameSuggest.js";
+import { ImageCapture } from "./ui/ImageCapture.js";
 
 const viewportEl = document.getElementById("viewport");
 const stageEl = document.getElementById("stage");
@@ -34,7 +35,7 @@ const updatedAtEl = document.querySelector("#board-meta .updated-at");
 // 공개 보기(방문자): 리포지토리에 올린 data/board.json을 읽어 보기 모드로만 보여준다 — 브라우저에 아무것도
 // 저장하지 않고(MemoryDeckStore), 수정/보기 전환·💾·템플릿·관계 메뉴도 없다.
 // 편집: 주소에 ?edit를 붙이거나 내 컴퓨터(localhost)에서 열 때 — 지금까지처럼 이 브라우저(IndexedDB)에
-// 저장하며 고치고, 💾 → "게시용 board.json 저장"으로 받은 파일을 data/board.json에 덮어써 push하면 게시된다.
+// 저장하며 고치고, 💾 → "board.json 저장"으로 받은 파일을 data/board.json에 덮어써 push하면 게시된다.
 // (localhost에서 방문자 화면을 미리 보려면 ?public)
 const PUBLISHED_URL = "data/board.json";
 const urlParams = new URLSearchParams(location.search);
@@ -48,11 +49,14 @@ const cropEditor = new ImageCropEditor(document.getElementById("crop-modal"));
 
 // Camera 생성자가 그 자리에서 onChange를 한 번 부르는데 그땐 아직 relations가 없다(바로 아래에서
 // 만들어짐) — let으로 선언만 해두고 optional chaining으로 참조한다(가계도 main.js와 같은 사정).
+// capture(📷 영역 표시)도 마찬가지.
 let relations;
+let capture;
 const camera = new Camera(viewportEl, stageEl, {
   onChange: (view) => {
     model.view = view;
     relations?.updateScale();
+    capture?.updateScale();
   },
 });
 
@@ -84,10 +88,10 @@ const toolbar = new Toolbar(toolbarEl, {
     const isDark = document.documentElement.getAttribute("data-theme") === "dark";
     applyTheme(isDark ? "light" : "dark");
   },
-  exportBoard,
   exportPublished,
   loadPublished: loadPublishedBoard,
   import: importFile,
+  capture: () => (capture.active ? capture.exit() : startCapture()),
   viewMode: (mode) => applyViewMode(mode),
   uiMode: (mode) => applyUiMode(mode),
   pickRelationTemplate: (id) => startConnect(id),
@@ -97,6 +101,27 @@ const toolbar = new Toolbar(toolbarEl, {
   cancelConnect: () => exitConnect(),
 });
 toolbar.setRelationTemplates(CATALOG.relationTemplates);
+
+// ---------- 📷 이미지로 저장(영역 고르기 → PNG) ----------
+// 공개 보기에서도 된다. 고르는 동안은 캔버스를 투명 판이 덮어서 덱을 누르면 입력 대신 그 덱 영역을 고른다.
+capture = new ImageCapture({
+  viewportEl, stageEl, camera, renderer,
+  layerEl: document.getElementById("capture-layer"),
+  barEl: document.getElementById("capture-bar"),
+  onSave: (blob) => downloadBlob(`deck-board-${dateStamp()}.png`, blob),
+  onToggle: (on) => toolbar.setCaptureActive(on),
+});
+
+function startCapture() {
+  // 선택 테두리·열린 메뉴·입력 커서가 사진에 안 찍히게 정리하고 시작한다.
+  exitConnect();
+  closeDeckMenu();
+  closeRelEditor();
+  closeAllTactics();
+  renderer.setSelected(null);
+  document.activeElement?.blur?.();
+  capture.start();
+}
 
 // ---------- 수정 / 보기 모드 — 이 브라우저에만 기억 ----------
 // 보기 모드: 수정용 UI(메뉴·추가·삭제 버튼, 드래그 손잡이 등)를 숨기고 셀렉트·입력칸을 그냥 박스로
@@ -218,6 +243,7 @@ let connect = null; // { template, fromId } | null
 function startConnect(templateId) {
   const template = CATALOG.relationTemplates.find((t) => t.id === templateId);
   if (!template || uiMode !== "edit") return;
+  capture.exit();
   closeAllTactics();
   closeDeckMenu();
   closeRelEditor();
@@ -465,8 +491,10 @@ function ensureDeckVisible(deck) {
 // ---------- 캔버스 배경 드래그 = 팬 ----------
 const backgroundDrag = new DragController(viewportEl, {
   // 보기 모드에서는 덱 위에서 끌어도 팬(덱은 어차피 못 옮김) — 대체 전법 펼치기·비고 스크롤만 예외.
-  filter: (e) => (!e.target.closest(".deck-board") && !e.target.closest(".rel-line")) ||
-    (uiMode === "view" && !e.target.closest(".tactic-toggle, .tactic-alts, .deck-notes")),
+  // 📷 영역을 고르는 동안은 끌기가 사각형 그리기라 팬하지 않는다.
+  filter: (e) => !capture.active && (
+    (!e.target.closest(".deck-board") && !e.target.closest(".rel-line")) ||
+    (uiMode === "view" && !e.target.closest(".tactic-toggle, .tactic-alts, .deck-notes"))),
   onDragStart: () => camera.setTransforming(true),
   onDragMove: (dx, dy) => camera.pan(dx, dy),
   onDragEnd: () => camera.setTransforming(false),
@@ -482,7 +510,10 @@ const backgroundDrag = new DragController(viewportEl, {
     closeRelEditor();
   },
 });
-camera.onPinchStart = () => backgroundDrag.cancelDrag();
+camera.onPinchStart = () => {
+  backgroundDrag.cancelDrag();
+  capture.cancelDrag();
+};
 
 // 화면 밖(아래쪽)에 걸친 입력칸에 포커스가 가면 브라우저가 #viewport(overflow:hidden)를 몰래 스크롤해서
 // 보이게 만든다 — 그러면 카메라 좌표 계산(스크롤 0 가정)이 어긋나 드래그·클릭 위치가 틀어진다.
@@ -594,7 +625,6 @@ function openDeckMenu(deckId, button) {
   if (menuDeckId === deckId && !deckMenuEl.hidden) return closeDeckMenu();
   menuDeckId = deckId;
   deckMenuEl.querySelector('[data-menu="toggle-lock"]').textContent = deck.locked ? "위치 잠금 해제" : "위치 잠금";
-  deckMenuEl.querySelector('[data-menu="export-deck"]').textContent = `이 ${kindNoun(deck)} JSON으로 내보내기`;
   syncTintButtons(deck);
   syncTextMenu(deck);
   deckMenuEl.hidden = false;
@@ -614,7 +644,7 @@ function closeDeckMenu() {
 const FONT_STEPS = [8, 10, 12, 14, 16, 18, 20, 24, 28, 32, 40, 48, 56, 64, 80, 96, 120];
 function syncTextMenu(deck) {
   const isField = deck.kind === "field";
-  for (const n of deckMenuEl.querySelectorAll('[data-menu="save-template"], [data-menu="export-deck"]')) n.hidden = isField;
+  deckMenuEl.querySelector('[data-menu="save-template"]').hidden = isField;
   const isText = deck.kind === "text";
   for (const n of deckMenuEl.querySelectorAll("[data-text-only]")) n.hidden = !isText;
   if (!isText) return;
@@ -642,7 +672,6 @@ deckMenuEl.addEventListener("click", async (e) => {
   const action = btn.dataset.menu;
   if (action === "save-template") await saveTemplate(deck);
   else if (action === "duplicate") duplicateDeck(deck);
-  else if (action === "export-deck") await exportDeck(deck);
   else if (action === "toggle-lock") model.updateDeck(deck.id, { locked: !deck.locked });
   else if (action === "toggle-bg") model.updateDeck(deck.id, { background: !deck.background });
   else if (action === "delete") deleteDeck(deck);
@@ -781,7 +810,7 @@ async function deleteTemplate(id) {
   await refreshTemplates();
 }
 
-// ---------- 내보내기 / 가져오기 ----------
+// ---------- board.json 저장 / 가져오기 ----------
 async function boardExportData() {
   const decks = [...model.decks.values()];
   const images = await imagesToDataURLs(await store.collectImages(decks));
@@ -792,11 +821,7 @@ async function boardExportData() {
   };
 }
 
-async function exportBoard() {
-  download(`deck-board-${dateStamp()}.json`, await boardExportData());
-}
-
-/** 게시용 — 리포지토리의 data/board.json에 그대로 덮어쓸 파일. 내용은 "보드 전체 내보내기"와 같다. */
+/** 💾 → "board.json 저장" — 리포지토리의 data/board.json에 그대로 덮어쓰면 게시되고, 그냥 보관하면 백업(가져오기로 복원). */
 async function exportPublished() {
   download("board.json", await boardExportData());
 }
@@ -829,14 +854,7 @@ async function loadPublishedBoard() {
   camera.fitToContent(renderer.getBounds());
 }
 
-async function exportDeck(deck) {
-  const images = await imagesToDataURLs(await store.collectImages([deck]));
-  download(`deck-${safeFileName(deckTitle(deck) || "untitled")}.json`, {
-    kind: "samguk-deck", version: EXPORT_VERSION, exportedAt: new Date().toISOString(),
-    deck: cloneDeckContent(deck), images,
-  });
-}
-
+/** 보드 JSON(board.json) 가져오기 — 예전에 "이 덱 JSON으로 내보내기"로 받아 둔 덱 파일도 그대로 받아준다. */
 async function importFile(file) {
   try {
     const data = JSON.parse(await file.text());
@@ -859,7 +877,10 @@ async function importFile(file) {
 }
 
 function download(filename, data) {
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  downloadBlob(filename, new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
+}
+
+function downloadBlob(filename, blob) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -870,10 +891,6 @@ function download(filename, data) {
 
 function dateStamp() {
   return new Date().toISOString().slice(0, 10);
-}
-
-function safeFileName(s) {
-  return s.replace(/[\\/:*?"<>|]+/g, "_").slice(0, 60);
 }
 
 // ---------- 장수·전법 이름 자동완성 ----------
@@ -950,6 +967,7 @@ function isTyping(e) {
 
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
+    capture.exit();
     renderer.setHighlight(null);
     relations.setFocus(null);
     setOwnedMode(false);
@@ -958,6 +976,11 @@ document.addEventListener("keydown", (e) => {
     closeAllTactics();
     closeDeckMenu();
     toolbar.closeMenus();
+    return;
+  }
+  if (capture.active && e.key === "Enter" && !isTyping(e)) {
+    e.preventDefault();
+    capture.save();
     return;
   }
   if (uiMode === "view") return; // 보기 모드에서는 실행취소·삭제 단축키도 막는다

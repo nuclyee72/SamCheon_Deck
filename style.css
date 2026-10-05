@@ -1107,6 +1107,73 @@
 #viewport.connect-mode .deck-board:hover { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
 .deck-board.connect-from { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent) !important; }
 
+/* ---------- 📷 이미지로 저장(영역 고르기) ----------
+   #capture-layer: 고르는 동안 캔버스를 덮는 투명 판(덱 조작을 막는다 — 휠·핀치 줌은 #viewport로 그대로 감).
+   .capture-rect: 고른 영역(점선) — 바깥은 큰 그림자로 어둡게 덮는다. */
+#capture-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  overflow: hidden;
+  cursor: crosshair;
+  touch-action: none;
+}
+#capture-layer[hidden],
+.capture-rect[hidden],
+.capture-bar[hidden] { display: none; }
+.capture-rect {
+  position: absolute;
+  border: 2px dashed var(--accent);
+  box-shadow: 0 0 0 200vmax rgba(15, 20, 30, 0.32);
+  pointer-events: none;
+}
+/* 고른 덱·필드(틀이 여기에 맞춰짐) — 결과 이미지에는 안 찍힌다 */
+.deck-board.capture-hit { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+/* 화면 위쪽 가운데 안내 + 전체/저장/취소 */
+.capture-bar {
+  position: fixed;
+  top: calc(var(--toolbar-h, 48px) + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: calc(100vw - 24px);
+  padding: 6px 6px 6px 14px;
+  background: var(--panel-bg);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: 0 4px 16px var(--shadow);
+  font-size: 13px;
+}
+.capture-hint {
+  min-width: 0;
+  margin-right: 4px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.capture-bar button {
+  flex: none;
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+  color: var(--text);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.capture-bar button:hover:not(:disabled) { background: var(--surface); }
+.capture-bar button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.capture-bar button.primary:hover:not(:disabled) { background: var(--accent-hover); }
+.capture-bar button:disabled { opacity: 0.45; cursor: default; }
+.capture-bar.busy button.primary { opacity: 1; cursor: progress; }
+
 /* 툴바 "관계 ▾" 메뉴의 선 모양 미리보기 */
 .relation-menu-swatch {
   display: inline-block;

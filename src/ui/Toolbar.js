@@ -44,16 +44,16 @@ export class Toolbar {
         <button type="button" data-action="redo" title="다시실행" aria-label="다시실행">↷</button>
       </div>
       <div class="toolbar-group toolbar-group-right">
+        <button type="button" class="toggle" data-action="capture" title="영역을 골라 PNG 이미지로 저장" aria-label="이미지로 저장">📷</button>
         <button type="button" data-action="theme-toggle" title="다크 모드 전환" aria-label="다크 모드 전환">🌙</button>
       </div>
       <div class="toolbar-group">
         <div class="toolbar-dropdown io-dropdown">
-          <button type="button" data-action="io-menu" title="내보내기/가져오기" aria-label="내보내기/가져오기">💾</button>
+          <button type="button" data-action="io-menu" title="저장/불러오기" aria-label="저장/불러오기">💾</button>
           <div class="toolbar-dropdown-menu io-menu-list">
-            <button type="button" data-io="export-board">보드 전체 JSON으로 내보내기</button>
-            <button type="button" data-io="export-published" title="받은 파일을 리포지토리의 data/board.json에 덮어쓰고 push하면 게시돼요">게시용 board.json 저장</button>
+            <button type="button" data-io="export-published" title="게시: 받은 파일을 리포지토리의 data/board.json에 덮어쓰고 push · 백업: 보관했다가 가져오기">board.json 저장 (게시·백업)</button>
             <button type="button" data-io="load-published" title="지금 보드를 게시된 data/board.json으로 바꾸기">게시본 불러오기</button>
-            <label class="file-btn">가져오기(보드 또는 덱 JSON)<input type="file" accept="application/json" data-role="import"></label>
+            <label class="file-btn">가져오기 (board.json)<input type="file" accept="application/json" data-role="import"></label>
           </div>
         </div>
       </div>
@@ -248,6 +248,13 @@ export class Toolbar {
     btn.classList.toggle("active", on);
     btn.setAttribute("aria-pressed", String(on));
     this.el.querySelector(".owned-group").classList.toggle("on", on);
+  }
+
+  /** 📷 영역 고르기 모드 켜짐/꺼짐. */
+  setCaptureActive(on) {
+    const btn = this.el.querySelector('[data-action="capture"]');
+    btn.classList.toggle("active", on);
+    btn.setAttribute("aria-pressed", String(on));
   }
 
   setSaveState(text) {
